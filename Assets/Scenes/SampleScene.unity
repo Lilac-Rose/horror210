@@ -471,17 +471,9 @@ MonoBehaviour:
   m_Mesh: {fileID: 1763599014}
   m_VersionIndex: 3742
   m_IsSelectable: 1
-  m_SelectedFaces: 04000000
-  m_SelectedEdges:
-  - a: 16
-    b: 17
-  - a: 18
-    b: 16
-  - a: 17
-    b: 19
-  - a: 19
-    b: 18
-  m_SelectedVertices: 10000000110000001200000013000000
+  m_SelectedFaces: 
+  m_SelectedEdges: []
+  m_SelectedVertices: 
 --- !u!43 &52010617
 Mesh:
   m_ObjectHideFlags: 0
@@ -2252,7 +2244,7 @@ Transform:
   m_GameObject: {fileID: 341292990}
   serializedVersion: 2
   m_LocalRotation: {x: 1.1102231e-17, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.8333335, y: 1.9166667, z: 0.083333336}
+  m_LocalPosition: {x: -2.6667, y: 1.9166667, z: 0.083333336}
   m_LocalScale: {x: 0.16666667, y: 0.16666667, z: 0.16666667}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18369,7 +18361,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6904006588311905304, guid: be80ab389dfc42c45bd396a9253cc115, type: 3}
       propertyPath: mouseSensitivity
-      value: 100
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 8190700784008212002, guid: be80ab389dfc42c45bd396a9253cc115, type: 3}
       propertyPath: m_Name

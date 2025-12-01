@@ -122,7 +122,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FogColor: {r: 0, g: 0, b: 0, a: 1}
-    - _PlayerLightPosition: {r: -69.74487, g: 8.776453, b: 44.595104, a: 0}
+    - _PlayerLightPosition: {r: -76.91831, g: 9.5513, b: 63.461372, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
