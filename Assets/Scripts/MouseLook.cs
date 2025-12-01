@@ -1,20 +1,25 @@
 using UnityEngine;
+
 public class MouseLook : MonoBehaviour
 {
-
     public float mouseSensitivity = 200f;
     public Transform playerBody;
+
+    [HideInInspector] public bool lookLocked = false;
+
     float xRotation = 0f;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        if (lookLocked)
+            return;
+
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 

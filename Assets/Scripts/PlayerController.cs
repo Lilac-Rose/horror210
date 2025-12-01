@@ -8,7 +8,9 @@ public class PlayerController : MonoBehaviour
     public float gravity = -9.81f;
 
     [Header("Debug")]
-    public bool showDebugInfo = true;
+    public bool showDebugInfo = false;
+
+    [HideInInspector] public bool movementLocked = false;
 
     private CharacterController controller;
     private Vector3 velocity;
@@ -20,7 +22,11 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        HandleMovement();
+        if (!movementLocked)
+        {
+            HandleMovement();
+        }
+
         ApplyGravity();
     }
 
@@ -37,7 +43,7 @@ public class PlayerController : MonoBehaviour
     {
         if (controller.isGrounded && velocity.y < 0)
         {
-            velocity.y = -2f; // keeps player grounded
+            velocity.y = -2f;
         }
 
         velocity.y += gravity * Time.deltaTime;
