@@ -8,7 +8,9 @@ public class ScreenFader : MonoBehaviour
 
     [Header("Fade Settings")]
     public Image fadeImage;
-    public float fadeDuration = 1f;
+    public float fadeInDuration = 1f;
+    public float fadeOutDuration = 1f;
+    public float sustainTime = 0.5f;
 
     void Awake()
     {
@@ -44,9 +46,9 @@ public class ScreenFader : MonoBehaviour
         fadeImage.enabled = true;
 
         //  Fade in to black 
-        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
         {
-            fadeImage.color = new Color(0, 0, 0, t / fadeDuration);
+            fadeImage.color = new Color(0, 0, 0, t / fadeInDuration);
             yield return null;
         }
         fadeImage.color = Color.black;
@@ -62,10 +64,13 @@ public class ScreenFader : MonoBehaviour
         //  Re-enable CharacterController 
         if (cc != null) cc.enabled = true;
 
+        //  Wait with the black screen
+        yield return new WaitForSeconds(sustainTime);
+
         //  Fade out from black 
-        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
         {
-            fadeImage.color = new Color(0, 0, 0, 1 - (t / fadeDuration));
+            fadeImage.color = new Color(0, 0, 0, 1 - (t / fadeOutDuration));
             yield return null;
         }
 
