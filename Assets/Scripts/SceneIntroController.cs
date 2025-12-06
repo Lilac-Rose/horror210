@@ -12,6 +12,7 @@ public class SceneIntroController : MonoBehaviour
     [Header("Audio")]
     public AudioSource audioSource;
     public float delayBeforeSound = 2f;
+    public AudioClip sheetsRustlingSound;
 
     [Header("Camera")]
     public Camera introCamera;
@@ -29,7 +30,6 @@ public class SceneIntroController : MonoBehaviour
     {
         // Ensure player is off during intro
         playerController.SetActive(false);
-
         // Ensure intro camera is active
         introCamera.gameObject.SetActive(true);
 
@@ -64,7 +64,12 @@ public class SceneIntroController : MonoBehaviour
         // 3. Fade from black
         yield return StartCoroutine(FadeFromBlack());
 
-        // 4. Play wake-up animation
+        // 4. Play sheets rustling sound and wake-up animation
+        if (sheetsRustlingSound != null)
+        {
+            AudioSource.PlayClipAtPoint(sheetsRustlingSound, introCamera.transform.position, 1f);
+        }
+
         if (introCameraAnimator != null)
         {
             introCameraAnimator.SetTrigger("Play");
@@ -87,7 +92,6 @@ public class SceneIntroController : MonoBehaviour
     {
         float t = 0f;
         Color c = blackImage.color;
-
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
@@ -98,7 +102,6 @@ public class SceneIntroController : MonoBehaviour
             blackImage.color = new Color(c.r, c.g, c.b, alpha);
             yield return null;
         }
-
         // Ensure it's fully transparent at the end
         blackImage.color = new Color(c.r, c.g, c.b, 0f);
     }
