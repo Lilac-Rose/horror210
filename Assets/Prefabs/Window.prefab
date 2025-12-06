@@ -12,10 +12,9 @@ GameObject:
   - component: {fileID: 110012303414792527}
   - component: {fileID: 3518214809806918926}
   - component: {fileID: 1838160634846864205}
-  - component: {fileID: 7597818957491568403}
   m_Layer: 0
   m_Name: Window
-  m_TagString: Window
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28,9 +27,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6339769097129893546}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.4999969, y: 0.50000304, z: -0.50000143, w: -0.49999863}
+  m_LocalRotation: {x: -0.5, y: 0.5, z: -0.5, w: -0.5}
   m_LocalPosition: {x: 3.748, y: 1.0833333, z: -2.0833335}
-  m_LocalScale: {x: 0.14499591, y: 0.11253078, z: 0.11253078}
+  m_LocalScale: {x: 0.14499591, y: 0.11253077, z: 0.11253077}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -113,26 +112,3 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &7597818957491568403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6339769097129893546}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b1b4a08341efea54ebccc14c1ceb4384, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Interactable
-  type: 3
-  doorTarget: {fileID: 0}
-  oneTimeUse: 0
-  doorToEnableOnLock: {fileID: 0}
-  doorToLockOnUse: {fileID: 0}
-  requiresLantern: 0
-  lockedMessageTrigger: {fileID: 0}
-  isJammedDoor: 0
-  jammedDoorSound: {fileID: 0}
-  objectToDeleteOnJammed: {fileID: 0}
-  windowLockSound: {fileID: 8300000, guid: 3fe22e59c544efd4fa93682a02fb6971, type: 3}
