@@ -1,8 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerInteractor : MonoBehaviour
 {
+    [Header("Interaction Settings")]
     public float interactRange = 5f;
     public Image interactImage;
     public Image lockImage;
@@ -13,8 +14,13 @@ public class PlayerInteractor : MonoBehaviour
     public Color lockedColor = Color.gray;
     public Color unlockedColor = Color.white;
 
+    [Header("Teleport Settings")]
+    public float firstNumber = -66.75f;
+    public float secondNumber = 41f;
+
     private Interactable currentTarget;
     private bool isInteracting = false;
+    private bool hasTeleported = false; // Prevent multiple teleports
 
     void Update()
     {
@@ -25,7 +31,7 @@ public class PlayerInteractor : MonoBehaviour
         }
     }
 
-    void HandleLook()
+    private void HandleLook()
     {
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
@@ -39,13 +45,8 @@ public class PlayerInteractor : MonoBehaviour
                 currentTarget = interact;
                 interactImage.enabled = true;
 
-                // Change interact image based on type and state
-                if (interact.type == InteractableType.Door && interact.IsLocked)
-                {
-                    interactImage.enabled = false;
-                    lockImage.enabled = true;
-                }
-                else if (interact.type == InteractableType.Window && interact.IsWindowLocked)
+                if ((interact.type == InteractableType.Door && interact.IsLocked) ||
+                    (interact.type == InteractableType.Window && interact.IsWindowLocked))
                 {
                     interactImage.enabled = false;
                     lockImage.enabled = true;
@@ -60,13 +61,13 @@ public class PlayerInteractor : MonoBehaviour
             }
         }
 
-        // No interactable
+        // No interactable hit
         currentTarget = null;
         interactImage.enabled = false;
         lockImage.enabled = false;
     }
 
-    void HandleInteraction()
+    private void HandleInteraction()
     {
         if (currentTarget == null) return;
 
@@ -93,66 +94,74 @@ public class PlayerInteractor : MonoBehaviour
         }
     }
 
-    void HandleDoorInteraction()
+    private void HandleDoorInteraction()
     {
-        // Try to use the door - it will return false if locked or requires lantern
-        bool doorOpened = currentTarget.UseDoor();
-
-        if (!doorOpened)
+        if (!currentTarget.UseDoor())
         {
-            // Door couldn't be opened (locked or missing lantern)
             Debug.Log("Cannot open door");
             return;
         }
 
-        // Door successfully opened - teleport player
         Transform doorTarget = currentTarget.doorTarget;
 
-        // Hide UI and start interaction
         isInteracting = true;
         interactImage.enabled = false;
         lockImage.enabled = false;
         currentTarget = null;
 
-        // Fade + teleport
+        // Stop footsteps immediately
+        PlayerController pc = playerBody.GetComponent<PlayerController>();
+        if (pc != null)
+            pc.StopFootsteps();
+
         ScreenFader.Instance.FadeAndTeleport(playerBody, doorTarget);
 
-        // Re-enable interaction after a short delay
         StartCoroutine(ReEnableInteraction());
     }
 
-    void HandleLanternInteraction()
+    private void HandleLanternInteraction()
     {
-        // Pick up the lantern
         if (currentTarget.PickupLantern())
         {
-            // Hide UI
             interactImage.enabled = false;
             lockImage.enabled = false;
             currentTarget = null;
         }
     }
 
-    void HandleWindowInteraction()
+    private void HandleWindowInteraction()
     {
-        // Lock the window
         if (currentTarget.LockWindow())
         {
-            // Window successfully locked
             Debug.Log("Window locked!");
 
-            // Check if all windows are locked
-            if (Interactable.AllWindowsLocked)
+            if (Interactable.AllWindowsLocked && !hasTeleported)
             {
                 Debug.Log("All windows secured!");
-                // You can trigger additional events here
+                hasTeleported = true;
+
+                float zOffset = firstNumber - secondNumber;
+                Vector3 newPos = playerBody.position;
+                newPos.z += zOffset;
+
+                PlayerController pc = playerBody.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    // Stop footsteps before teleport
+                    pc.StopFootsteps();
+                    Debug.Log("Teleporting player safely...");
+                    pc.Teleport(newPos);
+                }
+                else
+                {
+                    Debug.LogWarning("PlayerController not found on playerBody! Teleport failed.");
+                }
             }
         }
     }
 
-    System.Collections.IEnumerator ReEnableInteraction()
+    private System.Collections.IEnumerator ReEnableInteraction()
     {
-        // Wait for fade duration + a bit extra
         yield return new WaitForSeconds(1f);
         isInteracting = false;
     }
