@@ -1,103 +1,103 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class MenuController : MonoBehaviour
 {
     [Header("Button Colors")]
-    public Color normalColor = Color.white;
-    public Color hoverColor = Color.cyan;
+    public Color normalColor = Color.black;
+    public Color hoverColor = Color.gray;
 
-    [Header("Buttons")]
+    [Header("Text Elements (for hover effects)")]
     public TMP_Text startButton;
     public TMP_Text optionsButton;
     public TMP_Text exitButton;
+
+    [Header("Button Components (for click handling)")]
+    public Button startButtonComponent;
+    public Button optionsButtonComponent;
+    public Button exitButtonComponent;
 
     [Header("Canvases")]
     public Canvas mainMenuCanvas;
     public Canvas optionsCanvas;
 
-    private TMP_Text currentHover;
-
-    void Update()
+    void Awake()
     {
-        HandleHover();
-        HandleClick();
+        if (startButton != null)
+        {
+            startButton.color = normalColor;
+        }
+        if (optionsButton != null) optionsButton.color = normalColor;
+        if (exitButton != null) exitButton.color = normalColor;
     }
 
-    void HandleHover()
+    void Start()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
+        // Wire up button clicks
+        if (startButtonComponent != null)
+            startButtonComponent.onClick.AddListener(StartGame);
+        if (optionsButtonComponent != null)
+            optionsButtonComponent.onClick.AddListener(OpenOptions);
+        if (exitButtonComponent != null)
+            exitButtonComponent.onClick.AddListener(ExitGame);
 
-        TMP_Text hitText = null;
-
-        if (Physics.Raycast(ray, out hit))
-        {
-            hitText = hit.collider.GetComponent<TMP_Text>();
-        }
-
-        // If hovered object changed, update colors
-        if (currentHover != hitText)
-        {
-            if (currentHover != null)
-                currentHover.color = normalColor;
-
-            currentHover = hitText;
-
-            if (currentHover != null)
-                currentHover.color = hoverColor;
-        }
+        // Add hover listeners to buttons
+        AddHoverListeners(startButtonComponent, startButton);
+        AddHoverListeners(optionsButtonComponent, optionsButton);
+        AddHoverListeners(exitButtonComponent, exitButton);
     }
 
-    void HandleClick()
+    void AddHoverListeners(Button button, TMP_Text text)
     {
-        if (currentHover == null)
-            return;
+        if (button == null || text == null) return;
 
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (currentHover == startButton)
-            {
-                StartGame();
-            }
-            else if (currentHover == optionsButton)
-            {
-                OpenOptions();
-            }
-            else if (currentHover == exitButton)
-            {
-                ExitGame();
-            }
-        }
+        EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+
+        // Clear existing triggers to avoid duplicates
+        trigger.triggers.Clear();
+
+        // Pointer Enter (hover start)
+        EventTrigger.Entry entryEnter = new EventTrigger.Entry();
+        entryEnter.eventID = EventTriggerType.PointerEnter;
+        entryEnter.callback.AddListener((data) => {
+            text.color = hoverColor;
+        });
+        trigger.triggers.Add(entryEnter);
+
+        // Pointer Exit (hover end)
+        EventTrigger.Entry entryExit = new EventTrigger.Entry();
+        entryExit.eventID = EventTriggerType.PointerExit;
+        entryExit.callback.AddListener((data) => {
+            text.color = normalColor;
+        });
+        trigger.triggers.Add(entryExit);
     }
 
     // -----------------------
     // BUTTON FUNCTIONS
     // -----------------------
-
-    void StartGame()
+    public void StartGame()
     {
         SceneManager.LoadScene("Main");
     }
 
-    void OpenOptions()
+    public void OpenOptions()
     {
         mainMenuCanvas.enabled = false;
         optionsCanvas.enabled = true;
     }
 
-    void ExitGame()
+    public void ExitGame()
     {
-        // Quit in a build
         Application.Quit();
-
-        // Quit play mode in the editor
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-    #endif
-
+#endif
         Debug.Log("Game Quit");
     }
-
 }

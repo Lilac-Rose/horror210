@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class PlayerInteractor : MonoBehaviour
 {
-    public float interactRange = 3f;
+    public float interactRange = 5f;
     public Image interactImage;
     public Image lockImage;
     public LayerMask interactMask;
@@ -39,8 +39,13 @@ public class PlayerInteractor : MonoBehaviour
                 currentTarget = interact;
                 interactImage.enabled = true;
 
-                // Change interact image if door is locked
+                // Change interact image based on type and state
                 if (interact.type == InteractableType.Door && interact.IsLocked)
+                {
+                    interactImage.enabled = false;
+                    lockImage.enabled = true;
+                }
+                else if (interact.type == InteractableType.Window && interact.IsWindowLocked)
                 {
                     interactImage.enabled = false;
                     lockImage.enabled = true;
@@ -50,6 +55,7 @@ public class PlayerInteractor : MonoBehaviour
                     interactImage.color = unlockedColor;
                     lockImage.enabled = false;
                 }
+
                 return;
             }
         }
@@ -76,6 +82,10 @@ public class PlayerInteractor : MonoBehaviour
                     HandleLanternInteraction();
                     break;
 
+                case InteractableType.Window:
+                    HandleWindowInteraction();
+                    break;
+
                 case InteractableType.Generic:
                     Debug.Log("Interacted with generic object.");
                     break;
@@ -85,31 +95,30 @@ public class PlayerInteractor : MonoBehaviour
 
     void HandleDoorInteraction()
     {
-        // Check if door is locked before teleporting
-        if (currentTarget.IsLocked)
+        // Try to use the door - it will return false if locked or requires lantern
+        bool doorOpened = currentTarget.UseDoor();
+
+        if (!doorOpened)
         {
-            Debug.Log("This door is locked!");
+            // Door couldn't be opened (locked or missing lantern)
+            Debug.Log("Cannot open door");
             return;
         }
 
-        // Use the door (handles locking logic)
-        if (currentTarget.UseDoor())
-        {
-            // Store the target before clearing currentTarget
-            Transform doorTarget = currentTarget.doorTarget;
+        // Door successfully opened - teleport player
+        Transform doorTarget = currentTarget.doorTarget;
 
-            // Hide UI and start interaction
-            isInteracting = true;
-            interactImage.enabled = false;
-            lockImage.enabled = false;
-            currentTarget = null;
+        // Hide UI and start interaction
+        isInteracting = true;
+        interactImage.enabled = false;
+        lockImage.enabled = false;
+        currentTarget = null;
 
-            // Fade + teleport
-            ScreenFader.Instance.FadeAndTeleport(playerBody, doorTarget);
+        // Fade + teleport
+        ScreenFader.Instance.FadeAndTeleport(playerBody, doorTarget);
 
-            // Re-enable interaction after a short delay
-            StartCoroutine(ReEnableInteraction());
-        }
+        // Re-enable interaction after a short delay
+        StartCoroutine(ReEnableInteraction());
     }
 
     void HandleLanternInteraction()
@@ -121,6 +130,23 @@ public class PlayerInteractor : MonoBehaviour
             interactImage.enabled = false;
             lockImage.enabled = false;
             currentTarget = null;
+        }
+    }
+
+    void HandleWindowInteraction()
+    {
+        // Lock the window
+        if (currentTarget.LockWindow())
+        {
+            // Window successfully locked
+            Debug.Log("Window locked!");
+
+            // Check if all windows are locked
+            if (Interactable.AllWindowsLocked)
+            {
+                Debug.Log("All windows secured!");
+                // You can trigger additional events here
+            }
         }
     }
 
