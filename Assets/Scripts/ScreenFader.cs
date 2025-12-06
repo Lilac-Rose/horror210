@@ -16,7 +16,6 @@ public class ScreenFader : MonoBehaviour
     {
         // Singleton
         Instance = this;
-
         // Make sure fadeImage is transparent and disabled at start
         fadeImage.color = new Color(0, 0, 0, 0);
         fadeImage.enabled = false;
@@ -28,24 +27,24 @@ public class ScreenFader : MonoBehaviour
     /// </summary>
     /// <param name="player">Player Transform</param>
     /// <param name="target">Destination Transform</param>
-    public void FadeAndTeleport(Transform player, Transform target)
+    /// <param name="doorCloseSound">Optional door close sound to play after teleport</param>
+    public void FadeAndTeleport(Transform player, Transform target, AudioClip doorCloseSound = null)
     {
-        StartCoroutine(FadeRoutine(player, target));
+        StartCoroutine(FadeRoutine(player, target, doorCloseSound));
     }
 
-    private IEnumerator FadeRoutine(Transform player, Transform target)
+    private IEnumerator FadeRoutine(Transform player, Transform target, AudioClip doorCloseSound)
     {
-        //  Lock movement and look 
+        // Lock movement and look
         PlayerController pc = player.GetComponent<PlayerController>();
         MouseLook ml = player.GetComponentInChildren<MouseLook>();
-
         if (pc != null) pc.movementLocked = true;
         if (ml != null) ml.lookLocked = true;
 
-        //  Enable fade image 
+        // Enable fade image
         fadeImage.enabled = true;
 
-        //  Fade in to black 
+        // Fade in to black
         for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
         {
             fadeImage.color = new Color(0, 0, 0, t / fadeInDuration);
@@ -53,31 +52,36 @@ public class ScreenFader : MonoBehaviour
         }
         fadeImage.color = Color.black;
 
-        //  Disable CharacterController to prevent teleport issues 
+        // Disable CharacterController to prevent teleport issues
         CharacterController cc = player.GetComponent<CharacterController>();
         if (cc != null) cc.enabled = false;
 
-        //  Teleport 
+        // Teleport
         player.position = target.position;
         player.rotation = target.rotation;
 
-        //  Re-enable CharacterController 
+        // Re-enable CharacterController
         if (cc != null) cc.enabled = true;
 
-        //  Wait with the black screen
+        // Play door close sound after teleport
+        if (doorCloseSound != null)
+        {
+            AudioSource.PlayClipAtPoint(doorCloseSound, target.position, 0.6f);
+        }
+
+        // Wait with the black screen
         yield return new WaitForSeconds(sustainTime);
 
-        //  Fade out from black 
+        // Fade out from black
         for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
         {
             fadeImage.color = new Color(0, 0, 0, 1 - (t / fadeOutDuration));
             yield return null;
         }
-
         fadeImage.color = new Color(0, 0, 0, 0);
         fadeImage.enabled = false;
 
-        //  Unlock movement and look 
+        // Unlock movement and look
         if (pc != null) pc.movementLocked = false;
         if (ml != null) ml.lookLocked = false;
     }

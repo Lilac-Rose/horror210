@@ -7,6 +7,7 @@ public class PlayerInteractor : MonoBehaviour
     public float interactRange = 5f;
     public Image interactImage;
     public Image lockImage;
+    public Image lanternImage;
     public LayerMask interactMask;
     public Transform playerBody;
 
@@ -20,7 +21,7 @@ public class PlayerInteractor : MonoBehaviour
 
     private Interactable currentTarget;
     private bool isInteracting = false;
-    private bool hasTeleported = false; // Prevent multiple teleports
+    private bool hasTeleported = false;
 
     void Update()
     {
@@ -34,25 +35,32 @@ public class PlayerInteractor : MonoBehaviour
     private void HandleLook()
     {
         Ray ray = new Ray(transform.position, transform.forward);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, interactRange, interactMask))
+        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
         {
             Interactable interact = hit.collider.GetComponent<Interactable>();
-
             if (interact != null)
             {
                 currentTarget = interact;
-                interactImage.enabled = true;
 
-                if ((interact.type == InteractableType.Door && interact.IsLocked) ||
-                    (interact.type == InteractableType.Window && interact.IsWindowLocked))
+                // Check if this is a locked/jammed door or locked window
+                bool isLocked = false;
+                if (interact.type == InteractableType.Door)
+                {
+                    isLocked = interact.IsLocked || interact.isJammedDoor;
+                }
+                else if (interact.type == InteractableType.Window)
+                {
+                    isLocked = interact.IsWindowLocked;
+                }
+
+                if (isLocked)
                 {
                     interactImage.enabled = false;
                     lockImage.enabled = true;
                 }
                 else
                 {
+                    interactImage.enabled = true;
                     interactImage.color = unlockedColor;
                     lockImage.enabled = false;
                 }
@@ -61,7 +69,6 @@ public class PlayerInteractor : MonoBehaviour
             }
         }
 
-        // No interactable hit
         currentTarget = null;
         interactImage.enabled = false;
         lockImage.enabled = false;
@@ -70,52 +77,43 @@ public class PlayerInteractor : MonoBehaviour
     private void HandleInteraction()
     {
         if (currentTarget == null) return;
+        if (!Input.GetKeyDown(KeyCode.E)) return;
 
-        if (Input.GetKeyDown(KeyCode.E))
+        switch (currentTarget.type)
         {
-            switch (currentTarget.type)
-            {
-                case InteractableType.Door:
-                    HandleDoorInteraction();
-                    break;
-
-                case InteractableType.Lantern:
-                    HandleLanternInteraction();
-                    break;
-
-                case InteractableType.Window:
-                    HandleWindowInteraction();
-                    break;
-
-                case InteractableType.Generic:
-                    Debug.Log("Interacted with generic object.");
-                    break;
-            }
+            case InteractableType.Door: HandleDoorInteraction(); break;
+            case InteractableType.Lantern: HandleLanternInteraction(); break;
+            case InteractableType.Window: HandleWindowInteraction(); break;
+            case InteractableType.Generic: Debug.Log("Interacted with generic object."); break;
         }
     }
 
     private void HandleDoorInteraction()
     {
-        if (!currentTarget.UseDoor())
-        {
-            Debug.Log("Cannot open door");
-            return;
-        }
+        if (!currentTarget.UseDoor()) return;
 
         Transform doorTarget = currentTarget.doorTarget;
+
+        // Play door open sound immediately
+        if (currentTarget.DoorOpenSound != null)
+        {
+            AudioSource.PlayClipAtPoint(currentTarget.DoorOpenSound, transform.position, 0.6f);
+        }
 
         isInteracting = true;
         interactImage.enabled = false;
         lockImage.enabled = false;
+
+        // Store reference to door close sound for after teleport
+        AudioClip doorCloseSound = currentTarget.DoorCloseSound;
+
         currentTarget = null;
 
         // Stop footsteps immediately
         PlayerController pc = playerBody.GetComponent<PlayerController>();
-        if (pc != null)
-            pc.StopFootsteps();
+        pc?.StopFootsteps();
 
-        ScreenFader.Instance.FadeAndTeleport(playerBody, doorTarget);
-
+        ScreenFader.Instance.FadeAndTeleport(playerBody, doorTarget, doorCloseSound);
         StartCoroutine(ReEnableInteraction());
     }
 
@@ -126,6 +124,12 @@ public class PlayerInteractor : MonoBehaviour
             interactImage.enabled = false;
             lockImage.enabled = false;
             currentTarget = null;
+
+            // Enable the lantern UI image
+            if (lanternImage != null)
+            {
+                lanternImage.enabled = true;
+            }
         }
     }
 
@@ -134,28 +138,16 @@ public class PlayerInteractor : MonoBehaviour
         if (currentTarget.LockWindow())
         {
             Debug.Log("Window locked!");
-
             if (Interactable.AllWindowsLocked && !hasTeleported)
             {
                 Debug.Log("All windows secured!");
                 hasTeleported = true;
-
-                float zOffset = firstNumber - secondNumber;
                 Vector3 newPos = playerBody.position;
-                newPos.z += zOffset;
+                newPos.z += firstNumber - secondNumber;
 
                 PlayerController pc = playerBody.GetComponent<PlayerController>();
-                if (pc != null)
-                {
-                    // Stop footsteps before teleport
-                    pc.StopFootsteps();
-                    Debug.Log("Teleporting player safely...");
-                    pc.Teleport(newPos);
-                }
-                else
-                {
-                    Debug.LogWarning("PlayerController not found on playerBody! Teleport failed.");
-                }
+                pc?.StopFootsteps();
+                pc?.Teleport(newPos);
             }
         }
     }
