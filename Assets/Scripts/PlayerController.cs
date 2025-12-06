@@ -37,7 +37,6 @@ public class PlayerController : MonoBehaviour
         audioSource.volume = footstepVolume;
         audioSource.spatialBlend = 0f;
         audioSource.playOnAwake = false;
-
     }
 
     void Update()
@@ -62,13 +61,11 @@ public class PlayerController : MonoBehaviour
 
         if (isMoving && !isPlayingFootsteps)
         {
-            // Start playing footsteps
             audioSource.Play();
             isPlayingFootsteps = true;
         }
         else if (!isMoving && isPlayingFootsteps)
         {
-            // Stop playing footsteps
             audioSource.Stop();
             isPlayingFootsteps = false;
         }
@@ -87,6 +84,39 @@ public class PlayerController : MonoBehaviour
         if (showDebugInfo)
         {
             Debug.Log($"Grounded: {controller.isGrounded}, Velocity.y: {velocity.y:F2}");
+        }
+    }
+
+    public void Teleport(Vector3 newPosition)
+    {
+        StartCoroutine(TeleportRoutine(newPosition));
+    }
+
+    private System.Collections.IEnumerator TeleportRoutine(Vector3 newPosition)
+    {
+        movementLocked = true;
+
+        // Disable CharacterController so it doesn't override position
+        if (controller != null)
+            controller.enabled = false;
+
+        // Teleport to new position
+        transform.position = newPosition;
+
+        // Small delay to ensure CharacterController internal state resets
+        yield return new WaitForSeconds(0.05f);
+
+        if (controller != null)
+            controller.enabled = true;
+
+        movementLocked = false;
+    }
+    public void StopFootsteps()
+    {
+        if (audioSource != null && isPlayingFootsteps)
+        {
+            audioSource.Stop();
+            isPlayingFootsteps = false;
         }
     }
 }
