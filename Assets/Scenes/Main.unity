@@ -8925,7 +8925,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &231598203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8945,7 +8945,7 @@ MonoBehaviour:
   fovText: {fileID: 853791077}
   sensitivityText: {fileID: 2103456815}
   backButton: {fileID: 465420162}
-  backButtonText: {fileID: 0}
+  backButtonText: {fileID: 1276006047}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   hoverColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &231598204
@@ -8995,7 +8995,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 231598202}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 2679081801138881870}
@@ -20774,10 +20774,10 @@ RectTransform:
   - {fileID: 1158444499}
   m_Father: {fileID: 367081731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 80, y: -430.195}
-  m_SizeDelta: {x: 160, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 160, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &472697126
 MonoBehaviour:
@@ -23746,7 +23746,7 @@ RectTransform:
   m_Father: {fileID: 1765505032}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -37319,7 +37319,7 @@ MonoBehaviour:
       m_SwapUV: 0
       m_Fill: 1
       m_Scale: {x: 0.05, y: 0.09}
-      m_Offset: {x: 0, y: 0}
+      m_Offset: {x: 0.02, y: 0}
       m_Rotation: 0
       m_Anchor: 0
     m_Material: {fileID: 0}
@@ -37422,10 +37422,10 @@ MonoBehaviour:
   - {x: 0, y: -10}
   - {x: 1, y: 1}
   - {x: 0, y: 1}
-  - {x: 1.4, y: 0.00999999}
-  - {x: 0, y: 0.00999999}
-  - {x: 1.4, y: 1}
-  - {x: 0, y: 1}
+  - {x: 1.38, y: 0.00999999}
+  - {x: -0.02, y: 0.00999999}
+  - {x: 1.38, y: 1}
+  - {x: -0.02, y: 1}
   - {x: 1, y: -10}
   - {x: 0, y: -10}
   - {x: 1, y: 1}
@@ -37474,7 +37474,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 2038550032}
-  m_VersionIndex: 707
+  m_VersionIndex: 723
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -41413,10 +41413,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 367081731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 100, y: -500.01544}
-  m_SizeDelta: {x: 200, y: 39.61}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 200, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &853791076
 CanvasRenderer:
@@ -52333,7 +52333,7 @@ RectTransform:
   m_Father: {fileID: 1158444499}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -54295,7 +54295,7 @@ RectTransform:
   m_Father: {fileID: 1925426705}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -55624,7 +55624,7 @@ GameObject:
   - component: {fileID: 1276006046}
   - component: {fileID: 1276006045}
   m_Layer: 0
-  m_Name: Start
+  m_Name: BackText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55680,8 +55680,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 154.22499, y: 39.600002, z: 0}
-  m_Center: {x: -77.11239, y: 5.199999, z: 0}
+  m_Size: {x: 152.13751, y: 39.600002, z: 0}
+  m_Center: {x: -76.06865, y: 5.199999, z: 0}
 --- !u!114 &1276006047
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57038,7 +57038,7 @@ RectTransform:
   m_Father: {fileID: 1640038889}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -63193,10 +63193,10 @@ RectTransform:
   - {fileID: 1925426705}
   m_Father: {fileID: 367081731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 80, y: -569.8359}
-  m_SizeDelta: {x: 160, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 160, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1462494535
 MonoBehaviour:
@@ -63403,7 +63403,7 @@ RectTransform:
   m_Father: {fileID: 734135993}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -65594,6 +65594,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1547434320}
   - component: {fileID: 1547434319}
+  - component: {fileID: 1547434321}
   m_Layer: 0
   m_Name: SettingsController
   m_TagString: Untagged
@@ -65631,6 +65632,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1547434321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547434318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c60382af867f80b45a6e3ab1ebcf390b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseMenuController
+  optionsCanvas: {fileID: 231598206}
+  mouseLook: {fileID: 2679081801138881871}
 --- !u!1 &1563318587
 GameObject:
   m_ObjectHideFlags: 0
@@ -71912,10 +71927,10 @@ RectTransform:
   - {fileID: 1765505032}
   m_Father: {fileID: 367081731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 80, y: -709.44586}
-  m_SizeDelta: {x: 160, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 160, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1645370835
 MonoBehaviour:
@@ -90122,7 +90137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8706624790626198554, guid: b60782f6d7764e44892f6553891298b1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.125
+      value: -2.0416667
       objectReference: {fileID: 0}
     - target: {fileID: 8706624790626198554, guid: b60782f6d7764e44892f6553891298b1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -90701,10 +90716,6 @@ Mesh:
       format: 0
       dimension: 2
     - stream: 0
-      offset: 48
-      format: 0
-      dimension: 2
-    - stream: 0
       offset: 0
       format: 0
       dimension: 0
@@ -90736,8 +90747,12 @@ Mesh:
       offset: 0
       format: 0
       dimension: 0
-    m_DataSize: 1344
-    _typelessdata: 000060c10000b0c00000003f00000000000000000000803f000080bf0000000000000000000080bf0000e041000020c1a6d8a33c0bd7a33c000060410000b0c00000003f00000000000000000000803f000080bf0000000000000000000080bf00000000000020c151a7763f0bd7a33c000060c10000b0400000003f00000000000000000000803f000080bf0000000000000000000080bf0000e0410000803f0bd7a33c3204c83e000060410000b0400000003f00000000000000000000803f000080bf0000000000000000000080bf000000000000803f44a7763f3204c83e000060410000b0c00000003f0000803f000000000000000000000000000000000000803f000080bf0000803f000020c1a241d23e4641713f000060410000b0c0000000bf0000803f000000000000000000000000000000000000803f000080bf00000000000020c1a241d23ef8a0683f000060410000b0400000003f0000803f000000000000000000000000000000000000803f000080bf0000803f0000803f3104483f4641713f000060410000b040000000bf0000803f000000000000000000000000000000000000803f000080bf000000000000803f3104483ff8a0683f000060410000b0c0000000bf0000000000000000000080bf0000803f0000000000000000000080bf3333b33f00d7233ca6d8a33ca341d23e000060c10000b0c0000000bf0000000000000000000080bf0000803f0000000000000000000080bf0000000000d7233c51a7763fa341d23e000060410000b040000000bf0000000000000000000080bf0000803f0000000000000000000080bf3333b33f0000803f0bd7a33c3204483f000060c10000b040000000bf0000000000000000000080bf0000803f0000000000000000000080bf000000000000803f44a7763f3204483f000060c10000b0c0000000bf000080bf00000000000000000000000000000000000080bf000080bf0000803f000020c13104c83ef8a0683f000060c10000b0c00000003f000080bf00000000000000000000000000000000000080bf000080bf00000000000020c13104c83e4641713f000060c10000b040000000bf000080bf00000000000000000000000000000000000080bf000080bf0000803f0000803f0bd7a33cf8a0683f000060c10000b0400000003f000080bf00000000000000000000000000000000000080bf000080bf000000000000803f0fd7a33c4641713f000060c10000b0400000003f000000000000803f000000000000803f0000000000000000000080bf000000000000803f48a7763f39c3553f000060410000b0400000003f000000000000803f000000000000803f0000000000000000000080bf0000e0410000803f0bd7a33c39c3553f000060c10000b040000000bf000000000000803f000000000000803f0000000000000000000080bf00000000000000004da7763feb224d3f000060410000b040000000bf000000000000803f000000000000803f0000000000000000000080bf0000e04100000000bbd7a33ceb224d3f000060c10000b0c0000000bf00000000000080bf00000000000080bf0000000000000000000080bf0000e04100000000bbd7a33cf1e15a3f000060410000b0c0000000bf00000000000080bf00000000000080bf0000000000000000000080bf00000000000000004da7763ff1e15a3f000060c10000b0c00000003f00000000000080bf00000000000080bf0000000000000000000080bf0000e0410000803f0bd7a33c4082633f000060410000b0c00000003f00000000000080bf00000000000080bf0000000000000000000080bf000000000000803f48a7763f4082633f
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 1152
+    _typelessdata: 000060c10000b0c00000003f00000000000000000000803f000080bf0000000000000000000080bf0000e041000020c1000060410000b0c00000003f00000000000000000000803f000080bf0000000000000000000080bf00000000000020c1000060c10000b0400000003f00000000000000000000803f000080bf0000000000000000000080bf0000e0410000803f000060410000b0400000003f00000000000000000000803f000080bf0000000000000000000080bf000000000000803f000060410000b0c00000003f0000803f000000000000000000000000000000000000803f000080bf0000803f000020c1000060410000b0c0000000bf0000803f000000000000000000000000000000000000803f000080bf00000000000020c1000060410000b0400000003f0000803f000000000000000000000000000000000000803f000080bf0000803f0000803f000060410000b040000000bf0000803f000000000000000000000000000000000000803f000080bf000000000000803f000060410000b0c0000000bf0000000000000000000080bf0000803f0000000000000000000080bfd7a3b03f00d7233c000060c10000b0c0000000bf0000000000000000000080bf0000803f0000000000000000000080bf0ad7a3bc00d7233c000060410000b040000000bf0000000000000000000080bf0000803f0000000000000000000080bfd7a3b03f0000803f000060c10000b040000000bf0000000000000000000080bf0000803f0000000000000000000080bf0ad7a3bc0000803f000060c10000b0c0000000bf000080bf00000000000000000000000000000000000080bf000080bf0000803f000020c1000060c10000b0c00000003f000080bf00000000000000000000000000000000000080bf000080bf00000000000020c1000060c10000b040000000bf000080bf00000000000000000000000000000000000080bf000080bf0000803f0000803f000060c10000b0400000003f000080bf00000000000000000000000000000000000080bf000080bf000000000000803f000060c10000b0400000003f000000000000803f000000000000803f0000000000000000000080bf000000000000803f000060410000b0400000003f000000000000803f000000000000803f0000000000000000000080bf0000e0410000803f000060c10000b040000000bf000000000000803f000000000000803f0000000000000000000080bf0000000000000000000060410000b040000000bf000000000000803f000000000000803f0000000000000000000080bf0000e04100000000000060c10000b0c0000000bf00000000000080bf00000000000080bf0000000000000000000080bf0000e04100000000000060410000b0c0000000bf00000000000080bf00000000000080bf0000000000000000000080bf0000000000000000000060c10000b0c00000003f00000000000080bf00000000000080bf0000000000000000000080bf0000e0410000803f000060410000b0c00000003f00000000000080bf00000000000080bf0000000000000000000080bf000000000000803f
   m_CompressedMesh:
     m_Vertices:
       m_NumItems: 0
@@ -95740,10 +95755,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 367081731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 100, y: -360.37457}
-  m_SizeDelta: {x: 200, y: 39.61}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 200, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2093398325
 CanvasRenderer:
@@ -96628,10 +96643,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 367081731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 100, y: -639.64087}
-  m_SizeDelta: {x: 200, y: 39.61}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 200, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2104691649
 GameObject:
@@ -96666,7 +96681,7 @@ RectTransform:
   m_Father: {fileID: 226438508}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -99761,6 +99776,17 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 3603207732939691331, guid: be80ab389dfc42c45bd396a9253cc115, type: 3}
   m_PrefabInstance: {fileID: 2679081801138881868}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2679081801138881871 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6904006588311905304, guid: be80ab389dfc42c45bd396a9253cc115, type: 3}
+  m_PrefabInstance: {fileID: 2679081801138881868}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513378647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eefe0d046637e7549ad174e6da0b0b25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MouseLook
 --- !u!1001 &5176873285441000723
 PrefabInstance:
   m_ObjectHideFlags: 0
