@@ -78,6 +78,12 @@ public class MenuController : MonoBehaviour
         trigger.triggers.Add(entryExit);
     }
 
+    public void CloseOptions()
+    {
+        optionsCanvas.enabled = false;
+        mainMenuCanvas.enabled = true;
+    }
+
     // -----------------------
     // BUTTON FUNCTIONS
     // -----------------------
