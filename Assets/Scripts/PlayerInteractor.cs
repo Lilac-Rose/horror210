@@ -84,6 +84,7 @@ public class PlayerInteractor : MonoBehaviour
         {
             case InteractableType.Door: HandleDoorInteraction(); break;
             case InteractableType.Lantern: HandleLanternInteraction(); break;
+            case InteractableType.Crowbar: HandleCrowbarInteraction(); break;
             case InteractableType.Window: HandleWindowInteraction(); break;
             case InteractableType.Photo: HandlePhotoInteraction(); break;
             case InteractableType.Generic: Debug.Log("Interacted with generic object."); break;
@@ -94,15 +95,27 @@ public class PlayerInteractor : MonoBehaviour
     {
         if (!currentTarget.UseDoor()) return;
 
-        // Choose the correct door target based on whether windows are locked
+        // Determine which target to use based on game state
         Transform doorTarget;
-        if (Interactable.AllWindowsLocked && currentTarget.postHouseSwitchTarget != null)
+
+        if (Interactable.HasCrowbar && currentTarget.postCrowbarPickupTarget != null)
+        {
+            doorTarget = currentTarget.postCrowbarPickupTarget;
+        }
+        else if (Interactable.AllWindowsLocked && currentTarget.postHouseSwitchTarget != null)
         {
             doorTarget = currentTarget.postHouseSwitchTarget;
         }
         else
         {
             doorTarget = currentTarget.doorTarget;
+        }
+
+        // If no valid target exists, don't proceed
+        if (doorTarget == null)
+        {
+            Debug.Log("No valid door target found!");
+            return;
         }
 
         // Play door open sound immediately
@@ -141,6 +154,17 @@ public class PlayerInteractor : MonoBehaviour
             {
                 lanternImage.enabled = true;
             }
+        }
+    }
+
+    private void HandleCrowbarInteraction()
+    {
+        if (currentTarget.PickupCrowbar())
+        {
+            interactImage.enabled = false;
+            lockImage.enabled = false;
+            currentTarget = null;
+            Debug.Log("Crowbar picked up!");
         }
     }
 

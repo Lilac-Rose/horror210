@@ -1,2 +1,25 @@
 fileFormatVersion: 2
 guid: b1b4a08341efea54ebccc14c1ceb4384
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - doorTarget: {instanceID: 0}
+  - postHouseSwitchTarget: {instanceID: 0}
+  - doorToEnableOnLock: {instanceID: 0}
+  - doorToLockOnUse: {instanceID: 0}
+  - lockedMessageTrigger: {instanceID: 0}
+  - doorOpenSound: {fileID: 8300000, guid: afa5f7ab6281c214d8dc9b14ba93f340, type: 3}
+  - doorCloseSound: {fileID: 8300000, guid: 785c299db53951a42b87a6b9db60b96d, type: 3}
+  - jammedDoorSound: {fileID: 8300000, guid: 2b38929241bc2d14c8d5e23ef880f9c7, type: 3}
+  - unjamDoorSound: {fileID: 8300000, guid: d41a534517695e548b0e8eac3855d37d, type: 3}
+  - objectToDeleteOnJammed: {instanceID: 0}
+  - crowbarPickupTrigger: {instanceID: 0}
+  - windowLockSound: {instanceID: 0}
+  - photoUIImage: {instanceID: 0}
+  - photoDialogueTrigger: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
