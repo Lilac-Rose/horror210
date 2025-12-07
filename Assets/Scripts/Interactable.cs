@@ -9,6 +9,7 @@ public class Interactable : MonoBehaviour
 
     [Header("Door Settings")]
     public Transform doorTarget;
+    public Transform postHouseSwitchTarget;
     public bool oneTimeUse = false;
     public Interactable doorToEnableOnLock;
     public Interactable doorToLockOnUse;
