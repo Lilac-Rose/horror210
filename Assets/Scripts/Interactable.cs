@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum InteractableType { Generic, Door, Lantern, Window }
+public enum InteractableType { Generic, Door, Lantern, Window, Photo }
 
 public class Interactable : MonoBehaviour
 {
@@ -25,6 +25,13 @@ public class Interactable : MonoBehaviour
 
     [Header("Window Settings")]
     public AudioClip windowLockSound;
+
+    [Header("Photo Settings")]
+    public Image photoUIImage;
+    public TextTrigger photoDialogueTrigger;
+    public float photoFadeInDuration = 0.5f;
+    public float photoDisplayDuration = 2f;
+    public float photoFadeOutDuration = 0.5f;
 
     private bool isLocked = false;
     private static bool jammedDoorChecked = false;

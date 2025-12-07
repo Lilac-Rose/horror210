@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class PlayerInteractor : MonoBehaviour
 {
@@ -46,7 +47,7 @@ public class PlayerInteractor : MonoBehaviour
                 bool isLocked = false;
                 if (interact.type == InteractableType.Door)
                 {
-                    isLocked = interact.IsLocked || interact.isJammedDoor;
+                    isLocked = interact.IsLocked;
                 }
                 else if (interact.type == InteractableType.Window)
                 {
@@ -84,6 +85,7 @@ public class PlayerInteractor : MonoBehaviour
             case InteractableType.Door: HandleDoorInteraction(); break;
             case InteractableType.Lantern: HandleLanternInteraction(); break;
             case InteractableType.Window: HandleWindowInteraction(); break;
+            case InteractableType.Photo: HandlePhotoInteraction(); break;
             case InteractableType.Generic: Debug.Log("Interacted with generic object."); break;
         }
     }
@@ -150,6 +152,112 @@ public class PlayerInteractor : MonoBehaviour
                 pc?.Teleport(newPos);
             }
         }
+    }
+
+    private void HandlePhotoInteraction()
+    {
+        if (currentTarget.photoUIImage == null)
+        {
+            Debug.LogWarning("Photo interactable has no UI image assigned!");
+            return;
+        }
+
+        StartCoroutine(PhotoSequence(currentTarget));
+
+        // Hide the photo object in the world
+        currentTarget.gameObject.SetActive(false);
+    }
+
+    private IEnumerator PhotoSequence(Interactable photoInteractable)
+    {
+        isInteracting = true;
+        interactImage.enabled = false;
+        lockImage.enabled = false;
+
+        // Stop player movement
+        PlayerController pc = playerBody.GetComponent<PlayerController>();
+        pc?.StopFootsteps();
+        bool wasMovementEnabled = true;
+        if (pc != null)
+        {
+            wasMovementEnabled = pc.enabled;
+            pc.enabled = false;
+        }
+
+        // Stop mouse look
+        MouseLook mouseLook = GetComponent<MouseLook>();
+        bool wasMouseLookEnabled = false;
+        if (mouseLook != null)
+        {
+            wasMouseLookEnabled = mouseLook.enabled;
+            mouseLook.enabled = false;
+        }
+
+        // Get the canvas group from the photo UI image
+        CanvasGroup photoCanvasGroup = photoInteractable.photoUIImage.GetComponent<CanvasGroup>();
+        if (photoCanvasGroup == null)
+        {
+            Debug.LogWarning("Photo UI Image doesn't have a CanvasGroup component!");
+            photoCanvasGroup = photoInteractable.photoUIImage.gameObject.AddComponent<CanvasGroup>();
+        }
+
+        // Setup photo display
+        photoInteractable.photoUIImage.enabled = true;
+        photoCanvasGroup.alpha = 0f;
+
+        // Fade in
+        float fadeInTime = photoInteractable.photoFadeInDuration;
+        float elapsed = 0f;
+        while (elapsed < fadeInTime)
+        {
+            elapsed += Time.deltaTime;
+            photoCanvasGroup.alpha = Mathf.Clamp01(elapsed / fadeInTime);
+            yield return null;
+        }
+        photoCanvasGroup.alpha = 1f;
+
+        // Wait for display duration
+        yield return new WaitForSeconds(photoInteractable.photoDisplayDuration);
+
+        // Teleport player during photo display
+        Vector3 newPos = playerBody.position;
+        float relativeZ = 184.5f - 110.5f;
+        newPos.z += relativeZ;
+        playerBody.position = newPos;
+
+        // Trigger dialogue
+        if (photoInteractable.photoDialogueTrigger != null)
+        {
+            photoInteractable.photoDialogueTrigger.TriggerText();
+        }
+
+        // Fade out
+        float fadeOutTime = photoInteractable.photoFadeOutDuration;
+        elapsed = 0f;
+        while (elapsed < fadeOutTime)
+        {
+            elapsed += Time.deltaTime;
+            photoCanvasGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeOutTime);
+            yield return null;
+        }
+        photoCanvasGroup.alpha = 0f;
+
+        // Hide photo display
+        photoInteractable.photoUIImage.enabled = false;
+
+        // Re-enable player controls
+        if (pc != null && wasMovementEnabled)
+        {
+            pc.enabled = true;
+        }
+
+        if (mouseLook != null && wasMouseLookEnabled)
+        {
+            mouseLook.enabled = true;
+        }
+
+        currentTarget = null;
+        isInteracting = false;
     }
 
     private System.Collections.IEnumerator ReEnableInteraction()
