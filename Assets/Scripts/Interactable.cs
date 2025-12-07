@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum InteractableType { Generic, Door, Lantern, Window, Photo }
+public enum InteractableType { Generic, Door, Lantern, Window, Photo, Crowbar }
 
 public class Interactable : MonoBehaviour
 {
@@ -10,7 +10,9 @@ public class Interactable : MonoBehaviour
     [Header("Door Settings")]
     public Transform doorTarget;
     public Transform postHouseSwitchTarget;
+    public Transform postCrowbarPickupTarget;
     public bool oneTimeUse = false;
+    public bool startLocked = false;
     public Interactable doorToEnableOnLock;
     public Interactable doorToLockOnUse;
     public bool requiresLantern = false;
@@ -21,8 +23,12 @@ public class Interactable : MonoBehaviour
     [Header("Jammed Door Settings")]
     public bool isJammedDoor = false;
     public AudioClip jammedDoorSound;
-    [Tooltip("Object to delete when jammed door is interacted with")]
+    public AudioClip unjamDoorSound;
+    [Tooltip("Object to delete when jammed door is interacted with (without crowbar)")]
     public GameObject objectToDeleteOnJammed;
+
+    [Header("Crowbar Settings")]
+    public TextTrigger crowbarPickupTrigger;
 
     [Header("Window Settings")]
     public AudioClip windowLockSound;
@@ -37,9 +43,10 @@ public class Interactable : MonoBehaviour
     private bool isLocked = false;
     private static bool jammedDoorChecked = false;
 
-    // Lantern and window stuff
+    // Lantern, window, and crowbar stuff
     private bool isWindowLocked = false;
     private static bool hasLantern = false;
+    private static bool hasCrowbar = false;
     private static int totalWindows = 0;
     private static int lockedWindows = 0;
     private static bool allWindowsLocked = false;
@@ -47,6 +54,7 @@ public class Interactable : MonoBehaviour
     public bool IsLocked => isLocked;
     public bool IsWindowLocked => isWindowLocked;
     public static bool HasLantern => hasLantern;
+    public static bool HasCrowbar => hasCrowbar;
     public static bool AllWindowsLocked => allWindowsLocked;
     public static bool JammedDoorChecked => jammedDoorChecked;
     public AudioClip DoorOpenSound => doorOpenSound;
@@ -57,6 +65,12 @@ public class Interactable : MonoBehaviour
         if (type == InteractableType.Window)
         {
             totalWindows++;
+        }
+
+        // Set initial locked state for doors
+        if (type == InteractableType.Door && startLocked)
+        {
+            isLocked = true;
         }
     }
 
@@ -81,18 +95,44 @@ public class Interactable : MonoBehaviour
         // Check for jammed door first
         if (isJammedDoor)
         {
-            Debug.Log("This door is jammed!");
-            if (lockedMessageTrigger != null)
-                lockedMessageTrigger.TriggerText();
-            if (jammedDoorSound != null)
-                AudioSource.PlayClipAtPoint(jammedDoorSound, transform.position, 1f);
-            jammedDoorChecked = true;
-            if (objectToDeleteOnJammed != null)
+            // If player has crowbar, unjam the door
+            if (hasCrowbar)
             {
-                Destroy(objectToDeleteOnJammed);
-                Debug.Log($"Deleted object {objectToDeleteOnJammed.name} due to jammed door interaction.");
+                Debug.Log("Using crowbar to unjam the door!");
+                if (unjamDoorSound != null)
+                    AudioSource.PlayClipAtPoint(unjamDoorSound, transform.position, 1f);
+
+                // Unjam the door so it can be used normally
+                isJammedDoor = false;
+                jammedDoorChecked = true;
+
+                // Don't open the door yet, just unjam it
+                // Player will need to interact again to open
+                return false;
             }
-            return false;
+            else
+            {
+                // Door is jammed and player doesn't have crowbar
+                Debug.Log("This door is jammed!");
+
+                // Trigger the locked message
+                if (lockedMessageTrigger != null)
+                    lockedMessageTrigger.TriggerText();
+
+                // Play jammed sound
+                if (jammedDoorSound != null)
+                    AudioSource.PlayClipAtPoint(jammedDoorSound, transform.position, 1f);
+
+                // Delete the specified object (like a wall)
+                if (objectToDeleteOnJammed != null)
+                {
+                    Destroy(objectToDeleteOnJammed);
+                    Debug.Log($"Deleted object {objectToDeleteOnJammed.name} due to jammed door interaction.");
+                }
+
+                jammedDoorChecked = true;
+                return false;
+            }
         }
 
         if (isLocked)
@@ -104,6 +144,27 @@ public class Interactable : MonoBehaviour
 
         if (requiresLantern && !hasLantern)
         {
+            if (lockedMessageTrigger != null)
+                lockedMessageTrigger.TriggerText();
+            return false;
+        }
+
+        // Determine which target to use
+        Transform targetToUse = doorTarget;
+
+        if (hasCrowbar && postCrowbarPickupTarget != null)
+        {
+            targetToUse = postCrowbarPickupTarget;
+        }
+        else if (allWindowsLocked && postHouseSwitchTarget != null)
+        {
+            targetToUse = postHouseSwitchTarget;
+        }
+
+        // If no valid target, trigger locked message and don't do anything
+        if (targetToUse == null)
+        {
+            Debug.Log("Door has no valid teleport target!");
             if (lockedMessageTrigger != null)
                 lockedMessageTrigger.TriggerText();
             return false;
@@ -123,6 +184,21 @@ public class Interactable : MonoBehaviour
     {
         if (type != InteractableType.Lantern) return false;
         hasLantern = true;
+        Destroy(gameObject);
+        return true;
+    }
+
+    public bool PickupCrowbar()
+    {
+        if (type != InteractableType.Crowbar) return false;
+        hasCrowbar = true;
+
+        // Trigger text message if assigned
+        if (crowbarPickupTrigger != null)
+        {
+            crowbarPickupTrigger.TriggerText();
+        }
+
         Destroy(gameObject);
         return true;
     }
@@ -150,6 +226,7 @@ public class Interactable : MonoBehaviour
     public static void ResetAllFlags()
     {
         hasLantern = false;
+        hasCrowbar = false;
         lockedWindows = 0;
         allWindowsLocked = false;
         jammedDoorChecked = false;
