@@ -10,7 +10,7 @@ public class OptionsMenu : MonoBehaviour
     public Slider fovSlider;
     public Slider sensitivitySlider;
 
-    [Header("Value Display (Optional)")]
+    [Header("Value Display")]
     public TextMeshProUGUI volumeText;
     public TextMeshProUGUI fovText;
     public TextMeshProUGUI sensitivityText;
@@ -85,16 +85,16 @@ public class OptionsMenu : MonoBehaviour
     private void UpdateDisplayTexts()
     {
         if (volumeText != null)
-            volumeText.text = $"{Mathf.RoundToInt(GameSettings.Instance.MasterVolume * 100)}%";
+            volumeText.text = "Volume: " + Mathf.RoundToInt(GameSettings.Instance.MasterVolume * 100) + "%";
 
         if (fovText != null)
-            fovText.text = Mathf.RoundToInt(GameSettings.Instance.FOV).ToString();
+            fovText.text = "FOV: " + Mathf.RoundToInt(GameSettings.Instance.FOV);
 
         if (sensitivityText != null)
         {
             // Map 150-800 to 1-100
             float displayValue = Mathf.Lerp(1f, 100f, (GameSettings.Instance.MouseSensitivity - 150f) / 650f);
-            sensitivityText.text = Mathf.RoundToInt(displayValue).ToString();
+            sensitivityText.text = "Sensitivity: " + Mathf.RoundToInt(displayValue);
         }
     }
 

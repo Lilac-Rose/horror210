@@ -67,6 +67,11 @@ public class GameSettings : MonoBehaviour
         ApplyAllSettings();
     }
 
+    void OnEnable()
+    {
+        ApplyAllSettings();
+    }
+
     private void LoadSettings()
     {
         masterVolume = PlayerPrefs.GetFloat("MasterVolume", defaultMasterVolume);
@@ -83,10 +88,14 @@ public class GameSettings : MonoBehaviour
 
     private void ApplyFOV()
     {
-        Camera mainCam = Camera.main;
-        if (mainCam != null)
+        MouseLook mouseLook = FindFirstObjectByType<MouseLook>();
+        if (mouseLook != null)
         {
-            mainCam.fieldOfView = fov;
+            Camera cam = mouseLook.GetComponent<Camera>();
+            if (cam != null)
+            {
+                cam.fieldOfView = fov;
+            }
         }
     }
 
