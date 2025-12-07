@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum InteractableType { Generic, Door, Lantern, Window, Photo, Crowbar }
+public enum InteractableType { Generic, Door, Lantern, Window, Photo, Crowbar, BathroomSink }
 
 public class Interactable : MonoBehaviour
 {
@@ -29,6 +29,15 @@ public class Interactable : MonoBehaviour
 
     [Header("Crowbar Settings")]
     public TextTrigger crowbarPickupTrigger;
+
+    [Header("Bathroom Sink Settings")]
+    public AudioClip faucetOnSound;
+    public AudioClip waterSplashingSound;
+    public AudioClip faucetOffSound;
+    public float faucetOnDuration = 0.5f;
+    public float splashingDuration = 3f;
+    public float faucetOffDuration = 0.5f;
+    public bool requiresCrowbar = true;
 
     [Header("Window Settings")]
     public AudioClip windowLockSound;
@@ -200,6 +209,22 @@ public class Interactable : MonoBehaviour
         }
 
         Destroy(gameObject);
+        return true;
+    }
+
+    public bool UseBathroomSink()
+    {
+        if (type != InteractableType.BathroomSink) return false;
+
+        // Check if crowbar is required and player has it
+        if (requiresCrowbar && !hasCrowbar)
+        {
+            Debug.Log("Bathroom sink requires crowbar!");
+            if (lockedMessageTrigger != null)
+                lockedMessageTrigger.TriggerText();
+            return false;
+        }
+
         return true;
     }
 

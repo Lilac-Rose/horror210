@@ -43,6 +43,19 @@ public class PlayerInteractor : MonoBehaviour
             {
                 currentTarget = interact;
 
+                // Special handling for bathroom sink - don't show any UI if requirements not met
+                if (interact.type == InteractableType.BathroomSink)
+                {
+                    if (interact.requiresCrowbar && !Interactable.HasCrowbar)
+                    {
+                        // Don't show any interact UI
+                        currentTarget = null;
+                        interactImage.enabled = false;
+                        lockImage.enabled = false;
+                        return;
+                    }
+                }
+
                 // Check if this is a locked/jammed door or locked window
                 bool isLocked = false;
                 if (interact.type == InteractableType.Door)
@@ -87,6 +100,7 @@ public class PlayerInteractor : MonoBehaviour
             case InteractableType.Crowbar: HandleCrowbarInteraction(); break;
             case InteractableType.Window: HandleWindowInteraction(); break;
             case InteractableType.Photo: HandlePhotoInteraction(); break;
+            case InteractableType.BathroomSink: HandleBathroomSinkInteraction(); break;
             case InteractableType.Generic: Debug.Log("Interacted with generic object."); break;
         }
     }
@@ -199,6 +213,74 @@ public class PlayerInteractor : MonoBehaviour
 
         // Hide the photo object in the world
         currentTarget.gameObject.SetActive(false);
+    }
+
+    private void HandleBathroomSinkInteraction()
+    {
+        if (!currentTarget.UseBathroomSink()) return;
+
+        StartCoroutine(BathroomSinkSequence(currentTarget));
+    }
+
+    private IEnumerator BathroomSinkSequence(Interactable sinkInteractable)
+    {
+        isInteracting = true;
+        interactImage.enabled = false;
+        lockImage.enabled = false;
+
+        // Stop player movement
+        PlayerController pc = playerBody.GetComponent<PlayerController>();
+        pc?.StopFootsteps();
+        bool wasMovementEnabled = true;
+        if (pc != null)
+        {
+            wasMovementEnabled = pc.enabled;
+            pc.enabled = false;
+        }
+
+        // Stop mouse look
+        MouseLook mouseLook = GetComponent<MouseLook>();
+        bool wasMouseLookEnabled = false;
+        if (mouseLook != null)
+        {
+            wasMouseLookEnabled = mouseLook.enabled;
+            mouseLook.enabled = false;
+        }
+
+        // Play faucet on sound
+        if (sinkInteractable.faucetOnSound != null)
+        {
+            AudioSource.PlayClipAtPoint(sinkInteractable.faucetOnSound, sinkInteractable.transform.position, 1f);
+        }
+        yield return new WaitForSeconds(sinkInteractable.faucetOnDuration);
+
+        // Play water splashing sound
+        if (sinkInteractable.waterSplashingSound != null)
+        {
+            AudioSource.PlayClipAtPoint(sinkInteractable.waterSplashingSound, sinkInteractable.transform.position, 1f);
+        }
+        yield return new WaitForSeconds(sinkInteractable.splashingDuration);
+
+        // Play faucet off sound
+        if (sinkInteractable.faucetOffSound != null)
+        {
+            AudioSource.PlayClipAtPoint(sinkInteractable.faucetOffSound, sinkInteractable.transform.position, 1f);
+        }
+        yield return new WaitForSeconds(sinkInteractable.faucetOffDuration);
+
+        // Re-enable player controls
+        if (pc != null && wasMovementEnabled)
+        {
+            pc.enabled = true;
+        }
+
+        if (mouseLook != null && wasMouseLookEnabled)
+        {
+            mouseLook.enabled = true;
+        }
+
+        currentTarget = null;
+        isInteracting = false;
     }
 
     private IEnumerator PhotoSequence(Interactable photoInteractable)
