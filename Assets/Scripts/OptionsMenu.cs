@@ -29,7 +29,6 @@ public class OptionsMenu : MonoBehaviour
 
         // Add listeners
         volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
-        fovSlider.onValueChanged.AddListener(OnFOVChanged);
         sensitivitySlider.onValueChanged.AddListener(OnSensitivityChanged);
 
         if (backButton != null)
@@ -48,7 +47,6 @@ public class OptionsMenu : MonoBehaviour
         if (GameSettings.Instance != null)
         {
             volumeSlider.value = GameSettings.Instance.MasterVolume;
-            fovSlider.value = GameSettings.Instance.FOV;
             sensitivitySlider.value = GameSettings.Instance.MouseSensitivity;
 
             UpdateDisplayTexts();
@@ -60,15 +58,6 @@ public class OptionsMenu : MonoBehaviour
         if (GameSettings.Instance != null)
         {
             GameSettings.Instance.MasterVolume = value;
-            UpdateDisplayTexts();
-        }
-    }
-
-    private void OnFOVChanged(float value)
-    {
-        if (GameSettings.Instance != null)
-        {
-            GameSettings.Instance.FOV = value;
             UpdateDisplayTexts();
         }
     }
@@ -86,9 +75,6 @@ public class OptionsMenu : MonoBehaviour
     {
         if (volumeText != null)
             volumeText.text = "Volume: " + Mathf.RoundToInt(GameSettings.Instance.MasterVolume * 100) + "%";
-
-        if (fovText != null)
-            fovText.text = "FOV: " + Mathf.RoundToInt(GameSettings.Instance.FOV);
 
         if (sensitivityText != null)
         {
