@@ -94,7 +94,16 @@ public class PlayerInteractor : MonoBehaviour
     {
         if (!currentTarget.UseDoor()) return;
 
-        Transform doorTarget = currentTarget.doorTarget;
+        // Choose the correct door target based on whether windows are locked
+        Transform doorTarget;
+        if (Interactable.AllWindowsLocked && currentTarget.postHouseSwitchTarget != null)
+        {
+            doorTarget = currentTarget.postHouseSwitchTarget;
+        }
+        else
+        {
+            doorTarget = currentTarget.doorTarget;
+        }
 
         // Play door open sound immediately
         if (currentTarget.DoorOpenSound != null)
