@@ -30,6 +30,9 @@ public class Interactable : MonoBehaviour
     [Header("Crowbar Settings")]
     public TextTrigger crowbarPickupTrigger;
 
+    [Header("Lantern Settings")]
+    public AudioClip lanternPickupSound;
+
     [Header("Bathroom Sink Settings")]
     public AudioClip faucetOnSound;
     public AudioClip waterSplashingSound;
@@ -48,11 +51,11 @@ public class Interactable : MonoBehaviour
     public float photoFadeInDuration = 0.5f;
     public float photoDisplayDuration = 2f;
     public float photoFadeOutDuration = 0.5f;
+    public AudioClip photoPickupSound;
 
     private bool isLocked = false;
     private static bool jammedDoorChecked = false;
 
-    // Lantern, window, and crowbar stuff
     private bool isWindowLocked = false;
     private static bool hasLantern = false;
     private static bool hasCrowbar = false;
@@ -72,15 +75,10 @@ public class Interactable : MonoBehaviour
     void Awake()
     {
         if (type == InteractableType.Window)
-        {
             totalWindows++;
-        }
 
-        // Set initial locked state for doors
         if (type == InteractableType.Door && startLocked)
-        {
             isLocked = true;
-        }
     }
 
     void OnDestroy()
@@ -101,43 +99,27 @@ public class Interactable : MonoBehaviour
             return false;
         }
 
-        // Check for jammed door first
         if (isJammedDoor)
         {
-            // If player has crowbar, unjam the door
             if (hasCrowbar)
             {
-                Debug.Log("Using crowbar to unjam the door!");
                 if (unjamDoorSound != null)
-                    AudioSource.PlayClipAtPoint(unjamDoorSound, transform.position, 1f);
+                    AudioSource.PlayClipAtPoint(unjamDoorSound, transform.position);
 
-                // Unjam the door so it can be used normally
                 isJammedDoor = false;
                 jammedDoorChecked = true;
-
-                // Don't open the door yet, just unjam it
-                // Player will need to interact again to open
                 return false;
             }
             else
             {
-                // Door is jammed and player doesn't have crowbar
-                Debug.Log("This door is jammed!");
-
-                // Trigger the locked message
                 if (lockedMessageTrigger != null)
                     lockedMessageTrigger.TriggerText();
 
-                // Play jammed sound
                 if (jammedDoorSound != null)
-                    AudioSource.PlayClipAtPoint(jammedDoorSound, transform.position, 1f);
+                    AudioSource.PlayClipAtPoint(jammedDoorSound, transform.position);
 
-                // Delete the specified object (like a wall)
                 if (objectToDeleteOnJammed != null)
-                {
                     Destroy(objectToDeleteOnJammed);
-                    Debug.Log($"Deleted object {objectToDeleteOnJammed.name} due to jammed door interaction.");
-                }
 
                 jammedDoorChecked = true;
                 return false;
@@ -158,41 +140,18 @@ public class Interactable : MonoBehaviour
             return false;
         }
 
-        // Determine which target to use
-        Transform targetToUse = doorTarget;
-
-        if (hasCrowbar && postCrowbarPickupTarget != null)
-        {
-            targetToUse = postCrowbarPickupTarget;
-        }
-        else if (allWindowsLocked && postHouseSwitchTarget != null)
-        {
-            targetToUse = postHouseSwitchTarget;
-        }
-
-        // If no valid target, trigger locked message and don't do anything
-        if (targetToUse == null)
-        {
-            Debug.Log("Door has no valid teleport target!");
-            if (lockedMessageTrigger != null)
-                lockedMessageTrigger.TriggerText();
-            return false;
-        }
-
-        if (oneTimeUse)
-        {
-            LockDoor();
-            if (doorToEnableOnLock != null) doorToEnableOnLock.UnlockDoor();
-            if (doorToLockOnUse != null) doorToLockOnUse.LockDoor();
-        }
-
         return true;
     }
 
     public bool PickupLantern()
     {
         if (type != InteractableType.Lantern) return false;
+
         hasLantern = true;
+
+        if (lanternPickupSound != null)
+            AudioSource.PlayClipAtPoint(lanternPickupSound, transform.position);
+
         Destroy(gameObject);
         return true;
     }
@@ -200,13 +159,11 @@ public class Interactable : MonoBehaviour
     public bool PickupCrowbar()
     {
         if (type != InteractableType.Crowbar) return false;
+
         hasCrowbar = true;
 
-        // Trigger text message if assigned
         if (crowbarPickupTrigger != null)
-        {
             crowbarPickupTrigger.TriggerText();
-        }
 
         Destroy(gameObject);
         return true;
@@ -216,10 +173,8 @@ public class Interactable : MonoBehaviour
     {
         if (type != InteractableType.BathroomSink) return false;
 
-        // Check if crowbar is required and player has it
         if (requiresCrowbar && !hasCrowbar)
         {
-            Debug.Log("Bathroom sink requires crowbar!");
             if (lockedMessageTrigger != null)
                 lockedMessageTrigger.TriggerText();
             return false;
@@ -232,15 +187,15 @@ public class Interactable : MonoBehaviour
     {
         if (type != InteractableType.Window) return false;
         if (isWindowLocked) return false;
+
         isWindowLocked = true;
         lockedWindows++;
-        if (lockedWindows >= totalWindows) allWindowsLocked = true;
 
-        // Play window lock sound
+        if (lockedWindows >= totalWindows)
+            allWindowsLocked = true;
+
         if (windowLockSound != null)
-        {
-            AudioSource.PlayClipAtPoint(windowLockSound, transform.position, 1f);
-        }
+            AudioSource.PlayClipAtPoint(windowLockSound, transform.position);
 
         return true;
     }

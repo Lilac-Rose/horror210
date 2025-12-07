@@ -36,36 +36,31 @@ public class PlayerInteractor : MonoBehaviour
     private void HandleLook()
     {
         Ray ray = new Ray(transform.position, transform.forward);
+
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
         {
             Interactable interact = hit.collider.GetComponent<Interactable>();
+
             if (interact != null)
             {
                 currentTarget = interact;
 
-                // Special handling for bathroom sink - don't show any UI if requirements not met
-                if (interact.type == InteractableType.BathroomSink)
+                if (interact.type == InteractableType.BathroomSink &&
+                    interact.requiresCrowbar && !Interactable.HasCrowbar)
                 {
-                    if (interact.requiresCrowbar && !Interactable.HasCrowbar)
-                    {
-                        // Don't show any interact UI
-                        currentTarget = null;
-                        interactImage.enabled = false;
-                        lockImage.enabled = false;
-                        return;
-                    }
+                    currentTarget = null;
+                    interactImage.enabled = false;
+                    lockImage.enabled = false;
+                    return;
                 }
 
-                // Check if this is a locked/jammed door or locked window
                 bool isLocked = false;
+
                 if (interact.type == InteractableType.Door)
-                {
                     isLocked = interact.IsLocked;
-                }
+
                 else if (interact.type == InteractableType.Window)
-                {
                     isLocked = interact.IsWindowLocked;
-                }
 
                 if (isLocked)
                 {
@@ -109,45 +104,34 @@ public class PlayerInteractor : MonoBehaviour
     {
         if (!currentTarget.UseDoor()) return;
 
-        // Determine which target to use based on game state
         Transform doorTarget;
 
         if (Interactable.HasCrowbar && currentTarget.postCrowbarPickupTarget != null)
-        {
             doorTarget = currentTarget.postCrowbarPickupTarget;
-        }
-        else if (Interactable.AllWindowsLocked && currentTarget.postHouseSwitchTarget != null)
-        {
-            doorTarget = currentTarget.postHouseSwitchTarget;
-        }
-        else
-        {
-            doorTarget = currentTarget.doorTarget;
-        }
 
-        // If no valid target exists, don't proceed
+        else if (Interactable.AllWindowsLocked && currentTarget.postHouseSwitchTarget != null)
+            doorTarget = currentTarget.postHouseSwitchTarget;
+
+        else
+            doorTarget = currentTarget.doorTarget;
+
         if (doorTarget == null)
         {
             Debug.Log("No valid door target found!");
             return;
         }
 
-        // Play door open sound immediately
         if (currentTarget.DoorOpenSound != null)
-        {
             AudioSource.PlayClipAtPoint(currentTarget.DoorOpenSound, transform.position, 0.6f);
-        }
 
         isInteracting = true;
         interactImage.enabled = false;
         lockImage.enabled = false;
 
-        // Store reference to door close sound for after teleport
         AudioClip doorCloseSound = currentTarget.DoorCloseSound;
 
         currentTarget = null;
 
-        // Stop footsteps immediately
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         pc?.StopFootsteps();
 
@@ -159,15 +143,12 @@ public class PlayerInteractor : MonoBehaviour
     {
         if (currentTarget.PickupLantern())
         {
+            if (lanternImage != null)
+                lanternImage.enabled = true;
+
             interactImage.enabled = false;
             lockImage.enabled = false;
             currentTarget = null;
-
-            // Enable the lantern UI image
-            if (lanternImage != null)
-            {
-                lanternImage.enabled = true;
-            }
         }
     }
 
@@ -178,7 +159,6 @@ public class PlayerInteractor : MonoBehaviour
             interactImage.enabled = false;
             lockImage.enabled = false;
             currentTarget = null;
-            Debug.Log("Crowbar picked up!");
         }
     }
 
@@ -186,10 +166,8 @@ public class PlayerInteractor : MonoBehaviour
     {
         if (currentTarget.LockWindow())
         {
-            Debug.Log("Window locked!");
             if (Interactable.AllWindowsLocked && !hasTeleported)
             {
-                Debug.Log("All windows secured!");
                 hasTeleported = true;
                 Vector3 newPos = playerBody.position;
                 newPos.z += firstNumber - secondNumber;
@@ -209,16 +187,17 @@ public class PlayerInteractor : MonoBehaviour
             return;
         }
 
+        if (currentTarget.photoPickupSound != null)
+            AudioSource.PlayClipAtPoint(currentTarget.photoPickupSound, transform.position);
+
         StartCoroutine(PhotoSequence(currentTarget));
 
-        // Hide the photo object in the world
         currentTarget.gameObject.SetActive(false);
     }
 
     private void HandleBathroomSinkInteraction()
     {
         if (!currentTarget.UseBathroomSink()) return;
-
         StartCoroutine(BathroomSinkSequence(currentTarget));
     }
 
@@ -228,56 +207,36 @@ public class PlayerInteractor : MonoBehaviour
         interactImage.enabled = false;
         lockImage.enabled = false;
 
-        // Stop player movement
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         pc?.StopFootsteps();
-        bool wasMovementEnabled = true;
-        if (pc != null)
-        {
-            wasMovementEnabled = pc.enabled;
-            pc.enabled = false;
-        }
 
-        // Stop mouse look
+        bool wasMovementEnabled = pc != null && pc.enabled;
+        if (pc != null) pc.enabled = false;
+
         MouseLook mouseLook = GetComponent<MouseLook>();
-        bool wasMouseLookEnabled = false;
-        if (mouseLook != null)
-        {
-            wasMouseLookEnabled = mouseLook.enabled;
-            mouseLook.enabled = false;
-        }
+        bool wasMouseLookEnabled = mouseLook != null && mouseLook.enabled;
+        if (mouseLook != null) mouseLook.enabled = false;
 
-        // Play faucet on sound
         if (sinkInteractable.faucetOnSound != null)
-        {
-            AudioSource.PlayClipAtPoint(sinkInteractable.faucetOnSound, sinkInteractable.transform.position, 1f);
-        }
+            AudioSource.PlayClipAtPoint(sinkInteractable.faucetOnSound, sinkInteractable.transform.position);
+
         yield return new WaitForSeconds(sinkInteractable.faucetOnDuration);
 
-        // Play water splashing sound
         if (sinkInteractable.waterSplashingSound != null)
-        {
-            AudioSource.PlayClipAtPoint(sinkInteractable.waterSplashingSound, sinkInteractable.transform.position, 1f);
-        }
+            AudioSource.PlayClipAtPoint(sinkInteractable.waterSplashingSound, sinkInteractable.transform.position);
+
         yield return new WaitForSeconds(sinkInteractable.splashingDuration);
 
-        // Play faucet off sound
         if (sinkInteractable.faucetOffSound != null)
-        {
-            AudioSource.PlayClipAtPoint(sinkInteractable.faucetOffSound, sinkInteractable.transform.position, 1f);
-        }
+            AudioSource.PlayClipAtPoint(sinkInteractable.faucetOffSound, sinkInteractable.transform.position);
+
         yield return new WaitForSeconds(sinkInteractable.faucetOffDuration);
 
-        // Re-enable player controls
         if (pc != null && wasMovementEnabled)
-        {
             pc.enabled = true;
-        }
 
         if (mouseLook != null && wasMouseLookEnabled)
-        {
             mouseLook.enabled = true;
-        }
 
         currentTarget = null;
         isInteracting = false;
@@ -289,93 +248,68 @@ public class PlayerInteractor : MonoBehaviour
         interactImage.enabled = false;
         lockImage.enabled = false;
 
-        // Stop player movement
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         pc?.StopFootsteps();
-        bool wasMovementEnabled = true;
-        if (pc != null)
-        {
-            wasMovementEnabled = pc.enabled;
-            pc.enabled = false;
-        }
 
-        // Stop mouse look
+        bool wasMovementEnabled = pc != null && pc.enabled;
+        if (pc != null) pc.enabled = false;
+
         MouseLook mouseLook = GetComponent<MouseLook>();
-        bool wasMouseLookEnabled = false;
-        if (mouseLook != null)
-        {
-            wasMouseLookEnabled = mouseLook.enabled;
-            mouseLook.enabled = false;
-        }
+        bool wasMouseLookEnabled = mouseLook != null && mouseLook.enabled;
+        if (mouseLook != null) mouseLook.enabled = false;
 
-        // Get the canvas group from the photo UI image
         CanvasGroup photoCanvasGroup = photoInteractable.photoUIImage.GetComponent<CanvasGroup>();
         if (photoCanvasGroup == null)
-        {
-            Debug.LogWarning("Photo UI Image doesn't have a CanvasGroup component!");
             photoCanvasGroup = photoInteractable.photoUIImage.gameObject.AddComponent<CanvasGroup>();
-        }
 
-        // Setup photo display
         photoInteractable.photoUIImage.enabled = true;
         photoCanvasGroup.alpha = 0f;
 
-        // Fade in
         float fadeInTime = photoInteractable.photoFadeInDuration;
         float elapsed = 0f;
+
         while (elapsed < fadeInTime)
         {
             elapsed += Time.deltaTime;
             photoCanvasGroup.alpha = Mathf.Clamp01(elapsed / fadeInTime);
             yield return null;
         }
+
         photoCanvasGroup.alpha = 1f;
 
-        // Wait for display duration
         yield return new WaitForSeconds(photoInteractable.photoDisplayDuration);
 
-        // Teleport player during photo display
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;
         newPos.z += relativeZ;
         playerBody.position = newPos;
 
-        // Trigger dialogue
         if (photoInteractable.photoDialogueTrigger != null)
-        {
             photoInteractable.photoDialogueTrigger.TriggerText();
-        }
 
-        // Fade out
         float fadeOutTime = photoInteractable.photoFadeOutDuration;
         elapsed = 0f;
+
         while (elapsed < fadeOutTime)
         {
             elapsed += Time.deltaTime;
             photoCanvasGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeOutTime);
             yield return null;
         }
-        photoCanvasGroup.alpha = 0f;
 
-        // Hide photo display
         photoInteractable.photoUIImage.enabled = false;
 
-        // Re-enable player controls
         if (pc != null && wasMovementEnabled)
-        {
             pc.enabled = true;
-        }
 
         if (mouseLook != null && wasMouseLookEnabled)
-        {
             mouseLook.enabled = true;
-        }
 
         currentTarget = null;
         isInteracting = false;
     }
 
-    private System.Collections.IEnumerator ReEnableInteraction()
+    private IEnumerator ReEnableInteraction()
     {
         yield return new WaitForSeconds(1f);
         isInteracting = false;
