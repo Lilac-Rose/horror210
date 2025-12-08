@@ -17,6 +17,10 @@ public class LookAwayDisappear : MonoBehaviour
 
     [Header("Debug")]
     public bool debugMode = true;
+    public bool showTriggerRange = true;
+    public bool showFOVCone = true;
+    public Color triggerRangeColor = new Color(1f, 1f, 0f, 0.3f); // Yellow
+    public Color fovConeColor = new Color(0f, 1f, 0f, 0.2f); // Green
 
     private bool hasTriggered = false;
     private bool playerInRange = false;
@@ -48,11 +52,24 @@ public class LookAwayDisappear : MonoBehaviour
 
         if (playerInRange)
         {
+            if (debugMode)
+            {
+                Debug.Log($"Player in range. Checking FOV...", this);
+            }
+
             // Check if ALL objects are completely outside the player's FOV
             if (AreAllObjectsOutsideFOV())
             {
+                if (debugMode)
+                {
+                    Debug.Log("All objects outside FOV - triggering disappear!", this);
+                }
                 DisappearObjects();
             }
+        }
+        else if (debugMode)
+        {
+            Debug.Log($"Player out of range. Distance: {distance:F2}m (need: {triggerDistance}m)", this);
         }
     }
 
@@ -89,11 +106,25 @@ public class LookAwayDisappear : MonoBehaviour
             // Fallback to checking center point if no collider
             Vector3 directionToObject = (obj.transform.position - playerCamera.position).normalized;
             float angle = Vector3.Angle(playerCamera.forward, directionToObject);
+
+            if (debugMode)
+            {
+                Debug.Log($"{obj.name} has no collider, checking center. Angle: {angle:F1}° (FOV limit: {lookAwayAngle}°)", this);
+            }
+
             return angle <= lookAwayAngle;
         }
 
         // Get the bounds of the collider
         Bounds bounds = collider.bounds;
+
+        if (debugMode)
+        {
+            Debug.Log($"Checking {obj.name} collider bounds. Size: {bounds.size}", this);
+        }
+
+        int pointsInFOV = 0;
+        int totalPoints = 0;
 
         // Check multiple points across the collider bounds
         int points = checkPointsPerAxis;
@@ -103,6 +134,8 @@ public class LookAwayDisappear : MonoBehaviour
             {
                 for (int z = 0; z < points; z++)
                 {
+                    totalPoints++;
+
                     // Calculate point position within bounds
                     Vector3 point = new Vector3(
                         Mathf.Lerp(bounds.min.x, bounds.max.x, x / (float)(points - 1)),
@@ -122,10 +155,20 @@ public class LookAwayDisappear : MonoBehaviour
                     // If ANY point is in FOV, the object is visible
                     if (angle <= lookAwayAngle)
                     {
+                        pointsInFOV++;
+                        if (debugMode)
+                        {
+                            Debug.Log($"  Point {totalPoints} of {obj.name} IN FOV! Angle: {angle:F1}°", this);
+                        }
                         return true;
                     }
                 }
             }
+        }
+
+        if (debugMode)
+        {
+            Debug.Log($"{obj.name}: {pointsInFOV}/{totalPoints} points in FOV. Object is OUTSIDE FOV.", this);
         }
 
         // No points were in FOV
@@ -145,6 +188,80 @@ public class LookAwayDisappear : MonoBehaviour
                 if (debugMode)
                 {
                     Debug.Log($"Disappeared: {obj.name}", this);
+                }
+            }
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!debugMode) return;
+
+        // Show trigger range sphere
+        if (showTriggerRange)
+        {
+            Gizmos.color = triggerRangeColor;
+            Gizmos.DrawWireSphere(transform.position, triggerDistance);
+        }
+
+        // Show FOV cone from player camera
+        if (showFOVCone && playerCamera != null)
+        {
+            Gizmos.color = fovConeColor;
+
+            // Draw FOV cone
+            int segments = 32;
+            float angleStep = 360f / segments;
+            Vector3 forward = playerCamera.forward * triggerDistance;
+
+            for (int i = 0; i < segments; i++)
+            {
+                float currentAngle = angleStep * i;
+                float nextAngle = angleStep * (i + 1);
+
+                // Create rotation around the forward axis
+                Quaternion rot1 = Quaternion.AngleAxis(currentAngle, playerCamera.forward);
+                Quaternion rot2 = Quaternion.AngleAxis(nextAngle, playerCamera.forward);
+
+                // Calculate the direction at the FOV angle
+                Vector3 up = playerCamera.up;
+                Vector3 dir1 = Quaternion.AngleAxis(lookAwayAngle, up) * playerCamera.forward;
+                Vector3 dir2 = dir1;
+
+                // Rotate around forward axis
+                dir1 = rot1 * dir1;
+                dir2 = rot2 * dir2;
+
+                Vector3 point1 = playerCamera.position + dir1 * triggerDistance;
+                Vector3 point2 = playerCamera.position + dir2 * triggerDistance;
+
+                // Draw cone edge segments
+                Gizmos.DrawLine(point1, point2);
+
+                // Draw lines from camera to cone edge
+                if (i % 4 == 0)
+                {
+                    Gizmos.DrawLine(playerCamera.position, point1);
+                }
+            }
+
+            // Draw center line
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(playerCamera.position, playerCamera.position + playerCamera.forward * triggerDistance);
+        }
+
+        // Draw lines to objects being monitored
+        if (objectsToDisappear != null)
+        {
+            foreach (GameObject obj in objectsToDisappear)
+            {
+                if (obj != null)
+                {
+                    Gizmos.color = obj.activeSelf ? Color.cyan : Color.gray;
+                    Gizmos.DrawLine(transform.position, obj.transform.position);
+
+                    // Draw small sphere at object position
+                    Gizmos.DrawWireSphere(obj.transform.position, 0.2f);
                 }
             }
         }
