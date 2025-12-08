@@ -311,13 +311,13 @@ public class PlayerInteractor : MonoBehaviour
             pc.walkSpeed *= doorInteractable.speedMultiplier;
         }
 
-        // 3. Change the player's light intensity
+        // 3. Change the player's light range
         Light playerLight = doorInteractable.playerLight;
-        float originalIntensity = 0f;
+        float originalRange = 0f;
         if (playerLight != null)
         {
-            originalIntensity = playerLight.intensity;
-            yield return StartCoroutine(ChangeLightIntensity(playerLight, doorInteractable.targetLightIntensity, doorInteractable.lightDimDuration));
+            originalRange = playerLight.range;
+            yield return StartCoroutine(ChangeLightRange(playerLight, doorInteractable.targetLightRange, doorInteractable.lightChangeDuration));
         }
 
         // 4. Back the player away from the door
@@ -391,19 +391,19 @@ public class PlayerInteractor : MonoBehaviour
         isInteracting = false;
     }
 
-    private IEnumerator ChangeLightIntensity(Light light, float targetIntensity, float duration)
+    private IEnumerator ChangeLightRange(Light light, float targetRange, float duration)
     {
-        float startIntensity = light.intensity;
+        float startRange = light.range;
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            light.intensity = Mathf.Lerp(startIntensity, targetIntensity, elapsed / duration);
+            light.range = Mathf.Lerp(startRange, targetRange, elapsed / duration);
             yield return null;
         }
 
-        light.intensity = targetIntensity;
+        light.range = targetRange;
     }
 
     private IEnumerator BackPlayerAway(Transform player, float distance, float speed)

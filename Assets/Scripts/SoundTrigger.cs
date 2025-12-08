@@ -11,13 +11,13 @@ public class SoundTrigger : MonoBehaviour
     [Tooltip("Only trigger once, then disable")]
     public bool triggerOnce = false;
 
-    [Header("Light Intensity Settings")]
-    [Tooltip("Optional: Light to change intensity when triggered")]
+    [Header("Light Range Settings")]
+    [Tooltip("Optional: Light to change range when triggered")]
     public Light lightToChange;
     [Range(10f, 50f)]
-    [Tooltip("Target light intensity")]
-    public float targetLightIntensity = 50f;
-    [Tooltip("Duration of light intensity change in seconds")]
+    [Tooltip("Target light range")]
+    public float targetLightRange = 50f;
+    [Tooltip("Duration of light range change in seconds")]
     public float lightChangeDuration = 2f;
 
     private bool hasTriggered = false;
@@ -52,16 +52,16 @@ public class SoundTrigger : MonoBehaviour
 
     private IEnumerator ChangeLightIntensity()
     {
-        float startIntensity = lightToChange.intensity;
+        float startRange = lightToChange.range;
         float elapsed = 0f;
 
         while (elapsed < lightChangeDuration)
         {
             elapsed += Time.deltaTime;
-            lightToChange.intensity = Mathf.Lerp(startIntensity, targetLightIntensity, elapsed / lightChangeDuration);
+            lightToChange.range = Mathf.Lerp(startRange, targetLightRange, elapsed / lightChangeDuration);
             yield return null;
         }
 
-        lightToChange.intensity = targetLightIntensity;
+        lightToChange.range = targetLightRange;
     }
 }
