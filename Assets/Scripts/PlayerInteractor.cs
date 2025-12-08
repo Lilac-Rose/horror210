@@ -476,7 +476,12 @@ public class PlayerInteractor : MonoBehaviour
 
         while (elapsed < duration)
         {
-            timothy.transform.position += timothy.transform.forward * speed * Time.deltaTime;
+            // Move forward in Timothy's forward direction
+            Vector3 forwardMovement = timothy.transform.forward * speed * Time.deltaTime;
+            // Add positive X offset
+            Vector3 xOffset = Vector3.right * speed * Time.deltaTime;
+
+            timothy.transform.position += forwardMovement + xOffset;
             elapsed += Time.deltaTime;
             yield return null;
         }
