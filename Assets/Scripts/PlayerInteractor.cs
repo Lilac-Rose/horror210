@@ -260,13 +260,20 @@ public class PlayerInteractor : MonoBehaviour
 
                 // Trigger shot ending
                 Interactable.shotEndingTriggered = true;
-                Debug.Log("Timothy shot! Shot ending triggered.");
+                Debug.Log("Timothy shot! Loading PaddedRoom scene.");
 
-                // Start the shot ending sequence
-                StartCoroutine(ShotEndingSequence(gunInteractable));
+                // Disable player controls
+                PlayerController pc = playerBody.GetComponent<PlayerController>();
+                MouseLook mouseLook = GetComponent<MouseLook>();
+
+                if (pc != null) pc.enabled = false;
+                if (mouseLook != null) mouseLook.enabled = false;
 
                 // Destroy Timothy
                 Destroy(timothy.gameObject);
+
+                // Load the PaddedRoom scene immediately
+                UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
             }
         }
     }
@@ -605,26 +612,5 @@ public class PlayerInteractor : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         isInteracting = false;
-    }
-
-    private IEnumerator ShotEndingSequence(Interactable gunInteractable)
-    {
-        // Disable player controls
-        PlayerController pc = playerBody.GetComponent<PlayerController>();
-        MouseLook mouseLook = GetComponent<MouseLook>();
-
-        if (pc != null) pc.enabled = false;
-        if (mouseLook != null) mouseLook.enabled = false;
-
-        // Show black screen
-        if (gunInteractable != null && gunInteractable.shotEndingBlackImage != null)
-        {
-            gunInteractable.shotEndingBlackImage.enabled = true;
-        }
-
-        yield return new WaitForSeconds(1f);
-
-        // Load the PaddedRoom scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
     }
 }
