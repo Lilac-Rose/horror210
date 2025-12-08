@@ -40,6 +40,14 @@ public class InteractableEditor : Editor
                 ShowBathroomSinkSettings();
                 break;
 
+            case InteractableType.FinalDoor:
+                ShowFinalDoorSettings();
+                break;
+
+            case InteractableType.Gun:
+                ShowGunSettings();
+                break;
+
             case InteractableType.Generic:
                 EditorGUILayout.HelpBox("Generic interactable. Select a specific type to see settings.", MessageType.Info);
                 break;
@@ -112,5 +120,58 @@ public class InteractableEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("faucetOffDuration"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("requiresCrowbar"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("lockedMessageTrigger"));
+    }
+
+    void ShowFinalDoorSettings()
+    {
+        EditorGUILayout.LabelField("Final Door Settings", EditorStyles.boldLabel);
+
+        SerializedProperty prop;
+
+        prop = serializedObject.FindProperty("objectsToAppear");
+        if (prop != null) EditorGUILayout.PropertyField(prop, true);
+
+        prop = serializedObject.FindProperty("objectsToDisappear");
+        if (prop != null) EditorGUILayout.PropertyField(prop, true);
+
+        prop = serializedObject.FindProperty("speedMultiplier");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("doorRotationDegrees");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("doorRotationSpeed");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("timothyObject");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("timothyMoveSpeed");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("timothyActivationDistance");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("finalDoorAudio");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("timothyKillSound");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+    }
+
+    void ShowGunSettings()
+    {
+        EditorGUILayout.LabelField("Gun Settings", EditorStyles.boldLabel);
+
+        SerializedProperty prop;
+
+        prop = serializedObject.FindProperty("gunPickupSound");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("gunShootSound");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("gunUIImage");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
     }
 }

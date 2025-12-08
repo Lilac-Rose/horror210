@@ -14,7 +14,15 @@ public class SoundPlayer : MonoBehaviour
     [Tooltip("Loop the sound continuously")]
     public bool loop = false;
 
+    [Header("Fade Settings")]
+    [Tooltip("Enable fade in when playing sound")]
+    public bool fadeIn = true;
+    [Tooltip("Duration of fade in effect (seconds)")]
+    public float fadeInDuration = 1f;
+
     private AudioSource audioSource;
+    private float targetVolume;
+    private bool isFading = false;
 
     void Awake()
     {
@@ -27,17 +35,31 @@ public class SoundPlayer : MonoBehaviour
 
         // Configure the AudioSource
         audioSource.clip = soundClip;
-        audioSource.volume = volume;
         audioSource.loop = loop;
         audioSource.playOnAwake = false;
+
+        // Store target volume
+        targetVolume = volume;
     }
 
     void Update()
     {
-        // Update volume in real-time if changed in Inspector
-        if (audioSource != null)
+        // Update target volume if changed in Inspector (only when not playing)
+        if (!audioSource.isPlaying)
         {
-            audioSource.volume = volume;
+            targetVolume = volume;
+        }
+
+        // Handle fade in
+        if (isFading && audioSource != null)
+        {
+            audioSource.volume = Mathf.MoveTowards(audioSource.volume, targetVolume, (targetVolume / fadeInDuration) * Time.deltaTime);
+
+            // Stop fading when target reached
+            if (Mathf.Approximately(audioSource.volume, targetVolume))
+            {
+                isFading = false;
+            }
         }
     }
 
@@ -46,6 +68,22 @@ public class SoundPlayer : MonoBehaviour
     {
         if (audioSource != null && soundClip != null)
         {
+            // Update target volume from inspector value
+            targetVolume = volume;
+
+            if (fadeIn)
+            {
+                // Start at zero volume and fade in
+                audioSource.volume = 0f;
+                isFading = true;
+            }
+            else
+            {
+                // Start at full volume
+                audioSource.volume = targetVolume;
+                isFading = false;
+            }
+
             audioSource.Play();
         }
         else
@@ -60,6 +98,7 @@ public class SoundPlayer : MonoBehaviour
         if (audioSource != null)
         {
             audioSource.Stop();
+            isFading = false;
         }
     }
 
