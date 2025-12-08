@@ -170,10 +170,10 @@ public class InteractableEditor : Editor
         prop = serializedObject.FindProperty("playerLight");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
-        prop = serializedObject.FindProperty("targetLightIntensity");
+        prop = serializedObject.FindProperty("targetLightRange");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
-        prop = serializedObject.FindProperty("lightDimDuration");
+        prop = serializedObject.FindProperty("lightChangeDuration");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
         EditorGUILayout.Space();

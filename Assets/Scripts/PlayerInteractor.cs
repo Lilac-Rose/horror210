@@ -15,7 +15,8 @@ public class PlayerInteractor : MonoBehaviour
 
     [Header("Gun Settings")]
     public float gunRange = 50f;
-    public LayerMask timothyMask;
+    [Tooltip("Layer mask for Timothy - set to 'Everything' or create a 'Timothy' layer")]
+    public LayerMask timothyMask = -1; // -1 means everything by default
 
     [Header("UI Feedback")]
     public Color lockedColor = Color.gray;
@@ -239,37 +240,84 @@ public class PlayerInteractor : MonoBehaviour
 
     private void HandleGunShoot()
     {
+        // Debug: Check if gun is equipped
+        if (!Interactable.HasGun)
+        {
+            Debug.Log("Gun not equipped - cannot shoot");
+            return;
+        }
+
+        Debug.Log("Gun equipped, attempting to shoot...");
+
         Ray ray = new Ray(transform.position, transform.forward);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, gunRange, timothyMask))
+        // Debug: Show raycast info
+        Debug.DrawRay(transform.position, transform.forward * gunRange, Color.red, 1f);
+
+        // Use RaycastAll to detect trigger colliders
+        RaycastHit[] hits = Physics.RaycastAll(ray, gunRange, timothyMask, QueryTriggerInteraction.Collide);
+
+        if (hits.Length == 0)
         {
+            Debug.Log("Raycast didn't hit anything in timothyMask");
+            return;
+        }
+
+        Debug.Log($"Raycast hit {hits.Length} object(s)");
+
+        // Check each hit for Timothy
+        foreach (RaycastHit hit in hits)
+        {
+            Debug.Log($"Raycast hit: {hit.collider.name} on layer {hit.collider.gameObject.layer}");
+
             TimothyAI timothy = hit.collider.GetComponent<TimothyAI>();
 
-            if (timothy != null && timothy.IsActive)
+            if (timothy != null)
             {
-                // Play gun sound
-                Interactable gunInteractable = FindFirstObjectByType<Interactable>();
-                if (gunInteractable != null && gunInteractable.gunShootSound != null)
+                Debug.Log($"Timothy found! IsActive: {timothy.IsActive}");
+
+                if (timothy.IsActive)
                 {
-                    audioSource.PlayOneShot(gunInteractable.gunShootSound);
+                    Debug.Log("Timothy is active, shooting!");
+
+                    // Play gun sound
+                    Interactable gunInteractable = FindFirstObjectByType<Interactable>();
+                    if (gunInteractable != null && gunInteractable.gunShootSound != null)
+                    {
+                        Debug.Log("Playing gun sound");
+                        audioSource.PlayOneShot(gunInteractable.gunShootSound);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Gun sound not found or not assigned");
+                    }
+
+                    // Trigger shot ending
+                    Interactable.shotEndingTriggered = true;
+                    Debug.Log("Timothy shot! Loading PaddedRoom scene.");
+
+                    // Disable player controls
+                    PlayerController pc = playerBody.GetComponent<PlayerController>();
+                    MouseLook mouseLook = GetComponent<MouseLook>();
+
+                    if (pc != null) pc.enabled = false;
+                    if (mouseLook != null) mouseLook.enabled = false;
+
+                    // Destroy Timothy
+                    Destroy(timothy.gameObject);
+
+                    // Load the PaddedRoom scene
+                    UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
+                    return; // Exit after shooting Timothy
                 }
-
-                // Trigger shot ending
-                Interactable.shotEndingTriggered = true;
-                Debug.Log("Timothy shot! Loading PaddedRoom scene.");
-
-                // Disable player controls
-                PlayerController pc = playerBody.GetComponent<PlayerController>();
-                MouseLook mouseLook = GetComponent<MouseLook>();
-
-                if (pc != null) pc.enabled = false;
-                if (mouseLook != null) mouseLook.enabled = false;
-
-                // Destroy Timothy
-                Destroy(timothy.gameObject);
-
-                // Load the PaddedRoom scene immediately
-                UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
+                else
+                {
+                    Debug.Log("Timothy found but not active yet");
+                }
+            }
+            else
+            {
+                Debug.Log("Hit object has no TimothyAI component");
             }
         }
     }
