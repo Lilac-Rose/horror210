@@ -14,9 +14,8 @@ public class SoundTrigger : MonoBehaviour
     [Header("Light Range Settings")]
     [Tooltip("Optional: Light to change range when triggered")]
     public Light lightToChange;
-    [Range(10f, 50f)]
-    [Tooltip("Target light range")]
-    public float targetLightRange = 50f;
+    [Tooltip("Target light spot")]
+    public float targetLightRange = 100f;
     [Tooltip("Duration of light range change in seconds")]
     public float lightChangeDuration = 2f;
 
