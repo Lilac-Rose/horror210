@@ -68,13 +68,13 @@ public class Interactable : MonoBehaviour
     public AudioClip timothyKillSound;
 
     [Header("Final Door - Light Settings")]
-    [Tooltip("The player's light that will change intensity")]
+    [Tooltip("The player's light that will change range")]
     public Light playerLight;
     [Range(10f, 50f)]
-    [Tooltip("Target light intensity (can be brighter or dimmer than current)")]
-    public float targetLightIntensity = 50f;
-    [Tooltip("Duration of light intensity change in seconds")]
-    public float lightDimDuration = 2f;
+    [Tooltip("Target light range (can be larger or smaller than current)")]
+    public float targetLightRange = 50f;
+    [Tooltip("Duration of light range change in seconds")]
+    public float lightChangeDuration = 2f;
 
     [Header("Final Door - Player Movement")]
     [Tooltip("Distance to back player away from door")]
