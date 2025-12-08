@@ -41,34 +41,31 @@ public class TimothyAI : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-        // Check if player is within activation distance to start chasing
-        if (distanceToPlayer <= activationDistance)
+        // Always chase when active (removed distance check - chase immediately)
+        // Calculate direction only on X and Z axes (horizontal plane)
+        Vector3 playerPosFlat = new Vector3(player.position.x, transform.position.y, player.position.z);
+        Vector3 direction = (playerPosFlat - transform.position).normalized;
+
+        // Move towards player
+        Vector3 newPosition = transform.position + direction * chaseSpeed * Time.deltaTime;
+
+        // Lock Y position if enabled
+        if (lockYPosition)
         {
-            // Calculate direction only on X and Z axes (horizontal plane)
-            Vector3 playerPosFlat = new Vector3(player.position.x, transform.position.y, player.position.z);
-            Vector3 direction = (playerPosFlat - transform.position).normalized;
+            newPosition.y = lockedYPosition;
+        }
 
-            // Move towards player
-            Vector3 newPosition = transform.position + direction * chaseSpeed * Time.deltaTime;
+        transform.position = newPosition;
 
-            // Lock Y position if enabled
-            if (lockYPosition)
-            {
-                newPosition.y = lockedYPosition;
-            }
+        // Rotate to look at player (only horizontal rotation - Y axis only)
+        Vector3 lookTarget = new Vector3(player.position.x, transform.position.y, player.position.z);
+        Vector3 lookDirection = lookTarget - transform.position;
 
-            transform.position = newPosition;
-
-            // Rotate to look at player (only horizontal rotation - Y axis only)
-            Vector3 lookTarget = new Vector3(player.position.x, transform.position.y, player.position.z);
-            Vector3 lookDirection = lookTarget - transform.position;
-
-            if (lookDirection != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-                // Only use the Y rotation, keep X and Z at 0
-                transform.rotation = Quaternion.Euler(0, targetRotation.eulerAngles.y, 0);
-            }
+        if (lookDirection != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+            // Only use the Y rotation, keep X and Z at 0
+            transform.rotation = Quaternion.Euler(0, targetRotation.eulerAngles.y, 0);
         }
     }
 
