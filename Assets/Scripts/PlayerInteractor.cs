@@ -25,10 +25,6 @@ public class PlayerInteractor : MonoBehaviour
     public float firstNumber = -66.75f;
     public float secondNumber = 41f;
 
-    [Header("Final Door Rotation")]
-    [Tooltip("The left edge pivot point for door rotation")]
-    public Transform doorPivotPoint;
-
     private Interactable currentTarget;
     private bool isInteracting = false;
     private bool hasTeleported = false;
@@ -429,42 +425,44 @@ public class PlayerInteractor : MonoBehaviour
         float targetRotation = doorInteractable.doorRotationDegrees;
         float rotationSpeed = doorInteractable.doorRotationSpeed;
 
-        // Determine pivot point (left edge of door)
+        // Determine pivot point (left edge of door for hinge)
         Vector3 pivotPoint;
-        if (doorPivotPoint != null)
+        if (doorInteractable.doorPivotPoint != null)
         {
-            pivotPoint = doorPivotPoint.position;
+            pivotPoint = doorInteractable.doorPivotPoint.position;
         }
         else
         {
-            // Calculate left edge based on door's bounds
+            // Calculate left edge based on door's bounds (hinge side)
             Renderer doorRenderer = doorTransform.GetComponent<Renderer>();
             if (doorRenderer != null)
             {
                 Bounds bounds = doorRenderer.bounds;
+                // Use the minimum X (left edge) as the pivot for the hinge
                 pivotPoint = new Vector3(bounds.min.x, doorTransform.position.y, doorTransform.position.z);
             }
             else
             {
-                pivotPoint = doorTransform.position;
+                // Fallback: offset to the left edge
+                pivotPoint = doorTransform.position + doorTransform.right * -0.5f;
             }
         }
 
-        float currentRotation = 0f;
+        float rotated = 0f;
 
-        while (currentRotation < targetRotation)
+        while (rotated < targetRotation)
         {
             float deltaRotation = rotationSpeed * Time.deltaTime;
 
-            if (currentRotation + deltaRotation > targetRotation)
+            if (rotated + deltaRotation > targetRotation)
             {
-                deltaRotation = targetRotation - currentRotation;
+                deltaRotation = targetRotation - rotated;
             }
 
-            // Rotate around the pivot point on Y axis (horizontal rotation like a door)
+            // Rotate around the pivot point on Y axis (horizontal swing like a door)
             doorTransform.RotateAround(pivotPoint, Vector3.up, deltaRotation);
 
-            currentRotation += deltaRotation;
+            rotated += deltaRotation;
 
             yield return null;
         }

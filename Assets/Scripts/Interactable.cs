@@ -60,6 +60,8 @@ public class Interactable : MonoBehaviour
     public float speedMultiplier = 2f;
     public float doorRotationDegrees = 75f;
     public float doorRotationSpeed = 90f;
+    [Tooltip("Optional: Specific pivot point for door rotation (hinge position)")]
+    public Transform doorPivotPoint;
     public GameObject timothyObject;
     public float timothyMoveSpeed = 2f;
     public float timothyActivationDistance = 10f;

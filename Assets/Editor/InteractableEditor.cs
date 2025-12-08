@@ -143,6 +143,9 @@ public class InteractableEditor : Editor
         prop = serializedObject.FindProperty("doorRotationSpeed");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
+        prop = serializedObject.FindProperty("doorPivotPoint");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
         prop = serializedObject.FindProperty("timothyObject");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
