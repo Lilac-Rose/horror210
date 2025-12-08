@@ -700,7 +700,7 @@ MonoBehaviour:
   fadeToBlackImage: {fileID: 679093623}
   cameraSensitivity: 2
   cameraRotationLimits: {x: -30, y: 30}
-  fadeInDuration: 2
+  fadeInDuration: 5
   lookAroundDuration: 10
   nextSceneName: 
   blackScreenDuration: 3
@@ -2026,6 +2026,7 @@ MonoBehaviour:
   isJammedDoor: 0
   jammedDoorSound: {fileID: 0}
   unjamDoorSound: {fileID: 0}
+  delayedJammedAudio: {fileID: 0}
   objectToDeleteOnJammed: {fileID: 0}
   crowbarPickupTrigger: {fileID: 0}
   lanternPickupSound: {fileID: 8300000, guid: b6dd82bc40d57db43b002f9d6d18cf50, type: 3}
