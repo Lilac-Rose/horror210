@@ -280,16 +280,15 @@ public class PlayerInteractor : MonoBehaviour
                 {
                     Debug.Log("Timothy is active, shooting!");
 
-                    // Play gun sound
-                    Interactable gunInteractable = FindFirstObjectByType<Interactable>();
-                    if (gunInteractable != null && gunInteractable.gunShootSound != null)
+                    // Play gun sound using stored audio clip
+                    if (Interactable.StoredGunShootSound != null)
                     {
                         Debug.Log("Playing gun sound");
-                        audioSource.PlayOneShot(gunInteractable.gunShootSound);
+                        audioSource.PlayOneShot(Interactable.StoredGunShootSound);
                     }
                     else
                     {
-                        Debug.LogWarning("Gun sound not found or not assigned");
+                        Debug.LogWarning("Gun shoot sound not found or not stored");
                     }
 
                     // Trigger shot ending

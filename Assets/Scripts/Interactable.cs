@@ -101,6 +101,9 @@ public class Interactable : MonoBehaviour
     private static int lockedWindows = 0;
     private static bool allWindowsLocked = false;
 
+    // Store gun audio clips statically so they persist after gun is destroyed
+    private static AudioClip storedGunShootSound = null;
+
     public static bool shotEndingTriggered = false;
     public static bool caughtEndingTriggered = false;
 
@@ -113,6 +116,7 @@ public class Interactable : MonoBehaviour
     public static bool JammedDoorChecked => jammedDoorChecked;
     public AudioClip DoorOpenSound => doorOpenSound;
     public AudioClip DoorCloseSound => doorCloseSound;
+    public static AudioClip StoredGunShootSound => storedGunShootSound;
 
     void Awake()
     {
@@ -248,6 +252,9 @@ public class Interactable : MonoBehaviour
 
         hasGun = true;
 
+        // Store gun shoot sound statically before destroying the object
+        storedGunShootSound = gunShootSound;
+
         if (gunPickupSound != null)
             AudioSource.PlayClipAtPoint(gunPickupSound, transform.position);
 
@@ -271,5 +278,6 @@ public class Interactable : MonoBehaviour
         jammedDoorChecked = false;
         shotEndingTriggered = false;
         caughtEndingTriggered = false;
+        storedGunShootSound = null;
     }
 }

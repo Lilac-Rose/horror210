@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
         float z = Input.GetAxis("Vertical");
 
         Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * walkSpeed * Time.deltaTime);
+        controller.Move(move.normalized * walkSpeed * Time.deltaTime);
 
         bool isMoving = move.magnitude > 0.1f;
 
