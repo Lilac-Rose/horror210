@@ -277,15 +277,15 @@ public class PlayerInteractor : MonoBehaviour
 
         photoCanvasGroup.alpha = 1f;
 
+        if (photoInteractable.photoDialogueTrigger != null)
+            photoInteractable.photoDialogueTrigger.TriggerText();
+
         yield return new WaitForSeconds(photoInteractable.photoDisplayDuration);
 
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;
         newPos.z += relativeZ;
         playerBody.position = newPos;
-
-        if (photoInteractable.photoDialogueTrigger != null)
-            photoInteractable.photoDialogueTrigger.TriggerText();
 
         float fadeOutTime = photoInteractable.photoFadeOutDuration;
         elapsed = 0f;
