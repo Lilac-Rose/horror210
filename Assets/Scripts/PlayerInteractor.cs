@@ -487,7 +487,7 @@ public class PlayerInteractor : MonoBehaviour
 
     private IEnumerator RotatePlayer180(Transform player)
     {
-        float rotationSpeed = 180f; // degrees per second
+        float rotationSpeed = 360f; // degrees per second
         float rotated = 0f;
 
         while (rotated < 180f)
