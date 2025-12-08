@@ -53,12 +53,16 @@ public class PlayerController : MonoBehaviour
     {
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
-
         Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move.normalized * walkSpeed * Time.deltaTime);
 
+        // Normalize diagonal movement to prevent moving faster
+        if (move.magnitude > 1f)
+        {
+            move.Normalize();
+        }
+
+        controller.Move(move * walkSpeed * Time.deltaTime);
         bool isMoving = move.magnitude > 0.1f;
-
         if (isMoving && !isPlayingFootsteps)
         {
             audioSource.Play();
