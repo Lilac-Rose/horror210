@@ -9,8 +9,13 @@ public class PlayerInteractor : MonoBehaviour
     public Image interactImage;
     public Image lockImage;
     public Image lanternImage;
+    public Image gunImage;
     public LayerMask interactMask;
     public Transform playerBody;
+
+    [Header("Gun Settings")]
+    public float gunRange = 50f;
+    public LayerMask timothyMask;
 
     [Header("UI Feedback")]
     public Color lockedColor = Color.gray;
@@ -20,9 +25,20 @@ public class PlayerInteractor : MonoBehaviour
     public float firstNumber = -66.75f;
     public float secondNumber = 41f;
 
+    [Header("Final Door Rotation")]
+    [Tooltip("The left edge pivot point for door rotation")]
+    public Transform doorPivotPoint;
+
     private Interactable currentTarget;
     private bool isInteracting = false;
     private bool hasTeleported = false;
+    private AudioSource audioSource;
+
+    void Start()
+    {
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.spatialBlend = 0f;
+    }
 
     void Update()
     {
@@ -30,6 +46,12 @@ public class PlayerInteractor : MonoBehaviour
         {
             HandleLook();
             HandleInteraction();
+        }
+
+        // Gun shooting
+        if (Interactable.HasGun && Input.GetMouseButtonDown(0))
+        {
+            HandleGunShoot();
         }
     }
 
@@ -93,9 +115,11 @@ public class PlayerInteractor : MonoBehaviour
             case InteractableType.Door: HandleDoorInteraction(); break;
             case InteractableType.Lantern: HandleLanternInteraction(); break;
             case InteractableType.Crowbar: HandleCrowbarInteraction(); break;
+            case InteractableType.Gun: HandleGunInteraction(); break;
             case InteractableType.Window: HandleWindowInteraction(); break;
             case InteractableType.Photo: HandlePhotoInteraction(); break;
             case InteractableType.BathroomSink: HandleBathroomSinkInteraction(); break;
+            case InteractableType.FinalDoor: HandleFinalDoorInteraction(); break;
             case InteractableType.Generic: Debug.Log("Interacted with generic object."); break;
         }
     }
@@ -162,6 +186,17 @@ public class PlayerInteractor : MonoBehaviour
         }
     }
 
+    private void HandleGunInteraction()
+    {
+        if (currentTarget.PickupGun())
+        {
+            // Gun pickup handles its own UI display via gunUIImage field
+            interactImage.enabled = false;
+            lockImage.enabled = false;
+            currentTarget = null;
+        }
+    }
+
     private void HandleWindowInteraction()
     {
         if (currentTarget.LockWindow())
@@ -199,6 +234,219 @@ public class PlayerInteractor : MonoBehaviour
     {
         if (!currentTarget.UseBathroomSink()) return;
         StartCoroutine(BathroomSinkSequence(currentTarget));
+    }
+
+    private void HandleFinalDoorInteraction()
+    {
+        StartCoroutine(FinalDoorSequence(currentTarget));
+    }
+
+    private void HandleGunShoot()
+    {
+        Ray ray = new Ray(transform.position, transform.forward);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, gunRange, timothyMask))
+        {
+            TimothyAI timothy = hit.collider.GetComponent<TimothyAI>();
+
+            if (timothy != null && timothy.IsActive)
+            {
+                // Play gun sound
+                Interactable gunInteractable = FindFirstObjectByType<Interactable>();
+                if (gunInteractable != null && gunInteractable.gunShootSound != null)
+                {
+                    audioSource.PlayOneShot(gunInteractable.gunShootSound);
+                }
+
+                // Trigger shot ending
+                Interactable.shotEndingTriggered = true;
+                Debug.Log("Timothy shot! Shot ending triggered.");
+
+                // Start the shot ending sequence
+                StartCoroutine(ShotEndingSequence(gunInteractable));
+
+                // Destroy Timothy
+                Destroy(timothy.gameObject);
+            }
+        }
+    }
+
+    private IEnumerator FinalDoorSequence(Interactable doorInteractable)
+    {
+        isInteracting = true;
+        interactImage.enabled = false;
+        lockImage.enabled = false;
+
+        PlayerController pc = playerBody.GetComponent<PlayerController>();
+        MouseLook mouseLook = GetComponent<MouseLook>();
+
+        // Stop player movement and footsteps
+        pc?.StopFootsteps();
+        bool wasMovementEnabled = pc != null && pc.enabled;
+        bool wasMouseLookEnabled = mouseLook != null && mouseLook.enabled;
+
+        if (pc != null) pc.movementLocked = true;
+        if (mouseLook != null) mouseLook.lookLocked = true;
+
+        // 1. Make objects appear
+        if (doorInteractable.objectsToAppear != null)
+        {
+            foreach (GameObject obj in doorInteractable.objectsToAppear)
+            {
+                if (obj != null)
+                    obj.SetActive(true);
+            }
+        }
+
+        // 2. Increase player speed
+        if (pc != null)
+        {
+            pc.walkSpeed *= doorInteractable.speedMultiplier;
+        }
+
+        // 3. Rotate door on left edge
+        StartCoroutine(RotateDoor(doorInteractable));
+
+        // 4. Activate Timothy and move him forward slowly (coming out of door)
+        if (doorInteractable.timothyObject != null)
+        {
+            doorInteractable.timothyObject.SetActive(true);
+
+            // Set up Timothy's AI but don't activate it yet
+            TimothyAI timothyAI = doorInteractable.timothyObject.GetComponent<TimothyAI>();
+            if (timothyAI != null)
+            {
+                timothyAI.player = playerBody;
+                timothyAI.chaseSpeed = doorInteractable.timothyMoveSpeed;
+                timothyAI.activationDistance = doorInteractable.timothyActivationDistance;
+                timothyAI.killSound = doorInteractable.timothyKillSound;
+            }
+
+            // Move Timothy forward slowly (emerging from door) - wait for this to complete
+            yield return StartCoroutine(MoveTimothyForward(doorInteractable.timothyObject, doorInteractable.timothyMoveSpeed * 0.3f, 2f));
+        }
+
+        // 5. Turn player camera 180 degrees (after Timothy emerges)
+        yield return StartCoroutine(RotatePlayer180(playerBody));
+
+        // 6. Start audio
+        if (doorInteractable.finalDoorAudio != null)
+        {
+            audioSource.clip = doorInteractable.finalDoorAudio;
+            audioSource.Play();
+        }
+
+        // 7. Activate Timothy's AI after player turns around
+        if (doorInteractable.timothyObject != null)
+        {
+            TimothyAI timothyAI = doorInteractable.timothyObject.GetComponent<TimothyAI>();
+            if (timothyAI != null)
+            {
+                timothyAI.Activate();
+            }
+        }
+
+        // 8. Make objects disappear when chase starts
+        if (doorInteractable.objectsToDisappear != null)
+        {
+            foreach (GameObject obj in doorInteractable.objectsToDisappear)
+            {
+                if (obj != null)
+                    obj.SetActive(false);
+            }
+        }
+
+        // Re-enable controls
+        if (pc != null) pc.movementLocked = false;
+        if (mouseLook != null) mouseLook.lookLocked = false;
+
+        currentTarget = null;
+        isInteracting = false;
+    }
+
+    private IEnumerator RotateDoor(Interactable doorInteractable)
+    {
+        Transform doorTransform = doorInteractable.transform;
+        float startRotation = -90f;
+        float targetRotation = 45f;
+        float rotationSpeed = doorInteractable.doorRotationSpeed;
+
+        // If a pivot point is assigned, use it; otherwise use the door's left edge
+        Vector3 pivotPoint;
+        if (doorPivotPoint != null)
+        {
+            pivotPoint = doorPivotPoint.position;
+        }
+        else
+        {
+            // Calculate left edge based on door's bounds
+            Renderer doorRenderer = doorTransform.GetComponent<Renderer>();
+            if (doorRenderer != null)
+            {
+                Bounds bounds = doorRenderer.bounds;
+                pivotPoint = new Vector3(bounds.min.x, doorTransform.position.y, doorTransform.position.z);
+            }
+            else
+            {
+                // Fallback to door position
+                pivotPoint = doorTransform.position;
+            }
+        }
+
+        // Set initial rotation
+        doorTransform.rotation = Quaternion.Euler(doorTransform.rotation.eulerAngles.x,
+                                                   doorTransform.rotation.eulerAngles.y,
+                                                   startRotation);
+
+        float currentRotation = startRotation;
+        float totalRotation = targetRotation - startRotation; // 135 degrees total
+
+        while (Mathf.Abs(currentRotation - targetRotation) > 0.1f)
+        {
+            float deltaRotation = rotationSpeed * Time.deltaTime;
+
+            // Rotate around the pivot point on Z axis
+            doorTransform.RotateAround(pivotPoint, Vector3.forward, deltaRotation);
+
+            currentRotation += deltaRotation;
+
+            // Clamp to target
+            if (currentRotation >= targetRotation)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+
+        // Ensure final rotation is exact
+        doorTransform.RotateAround(pivotPoint, Vector3.forward, targetRotation - currentRotation);
+    }
+
+    private IEnumerator MoveTimothyForward(GameObject timothy, float speed, float duration)
+    {
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            timothy.transform.position += timothy.transform.forward * speed * Time.deltaTime;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+    }
+
+    private IEnumerator RotatePlayer180(Transform player)
+    {
+        float rotationSpeed = 180f; // degrees per second
+        float rotated = 0f;
+
+        while (rotated < 180f)
+        {
+            float deltaRotation = rotationSpeed * Time.deltaTime;
+            player.Rotate(0, deltaRotation, 0);
+            rotated += deltaRotation;
+            yield return null;
+        }
     }
 
     private IEnumerator BathroomSinkSequence(Interactable sinkInteractable)
@@ -282,6 +530,10 @@ public class PlayerInteractor : MonoBehaviour
 
         yield return new WaitForSeconds(photoInteractable.photoDisplayDuration);
 
+        // Play photo display sound before fadeout
+        if (photoInteractable.photoDisplaySound != null)
+            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position);
+
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;
         newPos.z += relativeZ;
@@ -313,5 +565,27 @@ public class PlayerInteractor : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         isInteracting = false;
+    }
+
+    private IEnumerator ShotEndingSequence(Interactable gunInteractable)
+    {
+        // Disable player controls
+        PlayerController pc = playerBody.GetComponent<PlayerController>();
+        MouseLook mouseLook = GetComponent<MouseLook>();
+
+        if (pc != null) pc.enabled = false;
+        if (mouseLook != null) mouseLook.enabled = false;
+
+        // Show black screen
+        if (gunInteractable != null && gunInteractable.shotEndingBlackImage != null)
+        {
+            gunInteractable.shotEndingBlackImage.enabled = true;
+        }
+
+        // Wait a moment
+        yield return new WaitForSeconds(1f);
+
+        // Load the PaddedRoom scene
+        UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
     }
 }

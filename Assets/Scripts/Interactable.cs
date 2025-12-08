@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum InteractableType { Generic, Door, Lantern, Window, Photo, Crowbar, BathroomSink }
+public enum InteractableType { Generic, Door, Lantern, Window, Photo, Crowbar, BathroomSink, FinalDoor, Gun }
 
 public class Interactable : MonoBehaviour
 {
@@ -54,20 +54,43 @@ public class Interactable : MonoBehaviour
     public AudioClip photoPickupSound;
     public AudioClip photoDisplaySound;
 
+    [Header("Final Door Settings")]
+    public GameObject[] objectsToAppear;
+    public GameObject[] objectsToDisappear;
+    public float speedMultiplier = 2f;
+    public float doorRotationDegrees = 75f;
+    public float doorRotationSpeed = 90f;
+    public GameObject timothyObject;
+    public float timothyMoveSpeed = 2f;
+    public float timothyActivationDistance = 10f;
+    public AudioClip finalDoorAudio;
+    public AudioClip timothyKillSound;
+
+    [Header("Gun Settings")]
+    public AudioClip gunPickupSound;
+    public AudioClip gunShootSound;
+    public Image gunUIImage;
+    public Image shotEndingBlackImage;
+
     private bool isLocked = false;
     private static bool jammedDoorChecked = false;
 
     private bool isWindowLocked = false;
     private static bool hasLantern = false;
     private static bool hasCrowbar = false;
+    private static bool hasGun = false;
     private static int totalWindows = 0;
     private static int lockedWindows = 0;
     private static bool allWindowsLocked = false;
+
+    public static bool shotEndingTriggered = false;
+    public static bool caughtEndingTriggered = false;
 
     public bool IsLocked => isLocked;
     public bool IsWindowLocked => isWindowLocked;
     public static bool HasLantern => hasLantern;
     public static bool HasCrowbar => hasCrowbar;
+    public static bool HasGun => hasGun;
     public static bool AllWindowsLocked => allWindowsLocked;
     public static bool JammedDoorChecked => jammedDoorChecked;
     public AudioClip DoorOpenSound => doorOpenSound;
@@ -201,6 +224,22 @@ public class Interactable : MonoBehaviour
         return true;
     }
 
+    public bool PickupGun()
+    {
+        if (type != InteractableType.Gun) return false;
+
+        hasGun = true;
+
+        if (gunPickupSound != null)
+            AudioSource.PlayClipAtPoint(gunPickupSound, transform.position);
+
+        if (gunUIImage != null)
+            gunUIImage.enabled = true;
+
+        Destroy(gameObject);
+        return true;
+    }
+
     public void LockDoor() => isLocked = true;
     public void UnlockDoor() => isLocked = false;
 
@@ -208,8 +247,11 @@ public class Interactable : MonoBehaviour
     {
         hasLantern = false;
         hasCrowbar = false;
+        hasGun = false;
         lockedWindows = 0;
         allWindowsLocked = false;
         jammedDoorChecked = false;
+        shotEndingTriggered = false;
+        caughtEndingTriggered = false;
     }
 }
