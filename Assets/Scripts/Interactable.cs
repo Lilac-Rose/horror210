@@ -52,6 +52,7 @@ public class Interactable : MonoBehaviour
     public float photoDisplayDuration = 2f;
     public float photoFadeOutDuration = 0.5f;
     public AudioClip photoPickupSound;
+    public AudioClip photoDisplaySound;
 
     private bool isLocked = false;
     private static bool jammedDoorChecked = false;
