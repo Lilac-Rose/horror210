@@ -8,6 +8,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Main.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/Hospital.unity
+    guid: 62ff4e9678f754549b3f3265f7f6d1f2
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 26140631624c3434a83678714e6197f3
+  - enabled: 1
+    path: Assets/Scenes/PaddedRoom.unity
+    guid: 0493d43cd0f3c2c419f60165888f255d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
