@@ -64,7 +64,23 @@ public class Interactable : MonoBehaviour
     public float timothyMoveSpeed = 2f;
     public float timothyActivationDistance = 10f;
     public AudioClip finalDoorAudio;
+    public AudioClip chaseMusic;
     public AudioClip timothyKillSound;
+
+    [Header("Final Door - Light Settings")]
+    [Tooltip("The player's light that will change intensity")]
+    public Light playerLight;
+    [Range(10f, 50f)]
+    [Tooltip("Target light intensity (can be brighter or dimmer than current)")]
+    public float targetLightIntensity = 50f;
+    [Tooltip("Duration of light intensity change in seconds")]
+    public float lightDimDuration = 2f;
+
+    [Header("Final Door - Player Movement")]
+    [Tooltip("Distance to back player away from door")]
+    public float playerBackAwayDistance = 3f;
+    [Tooltip("Speed at which player backs away")]
+    public float playerBackAwaySpeed = 2f;
 
     [Header("Gun Settings")]
     public AudioClip gunPickupSound;
