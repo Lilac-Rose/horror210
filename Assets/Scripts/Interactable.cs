@@ -24,6 +24,8 @@ public class Interactable : MonoBehaviour
     public bool isJammedDoor = false;
     public AudioClip jammedDoorSound;
     public AudioClip unjamDoorSound;
+    [Tooltip("Audio to play 1.5 seconds after jammed door is checked")]
+    public AudioClip delayedJammedAudio;
     [Tooltip("Object to delete when jammed door is interacted with (without crowbar)")]
     public GameObject objectToDeleteOnJammed;
 

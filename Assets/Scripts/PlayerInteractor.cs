@@ -26,10 +26,16 @@ public class PlayerInteractor : MonoBehaviour
     public float firstNumber = -66.75f;
     public float secondNumber = 41f;
 
+    [Header("Screen Shake Settings")]
+    public float shakeIntensity = 0.1f;
+    public float shakeSpeed = 25f;
+
     private Interactable currentTarget;
     private bool isInteracting = false;
     private bool hasTeleported = false;
     private AudioSource audioSource;
+    private bool isScreenShaking = false;
+    private Coroutine screenShakeCoroutine;
 
     void Start()
     {
@@ -49,6 +55,12 @@ public class PlayerInteractor : MonoBehaviour
         if (Interactable.HasGun && Input.GetMouseButtonDown(0))
         {
             HandleGunShoot();
+        }
+
+        // Stop screen shake if either ending is triggered
+        if ((Interactable.shotEndingTriggered || Interactable.caughtEndingTriggered) && isScreenShaking)
+        {
+            StopScreenShake();
         }
     }
 
@@ -123,6 +135,12 @@ public class PlayerInteractor : MonoBehaviour
 
     private void HandleDoorInteraction()
     {
+        // Check if this is a jammed door and trigger delayed audio
+        if (currentTarget.isJammedDoor && currentTarget.delayedJammedAudio != null)
+        {
+            StartCoroutine(PlayDelayedJammedAudio(currentTarget.delayedJammedAudio, currentTarget.transform.position));
+        }
+
         if (!currentTarget.UseDoor()) return;
 
         Transform doorTarget;
@@ -158,6 +176,16 @@ public class PlayerInteractor : MonoBehaviour
 
         ScreenFader.Instance.FadeAndTeleport(playerBody, doorTarget, doorCloseSound);
         StartCoroutine(ReEnableInteraction());
+    }
+
+    private IEnumerator PlayDelayedJammedAudio(AudioClip audioClip, Vector3 position)
+    {
+        yield return new WaitForSeconds(1.5f);
+
+        if (audioClip != null)
+        {
+            AudioSource.PlayClipAtPoint(audioClip, position);
+        }
     }
 
     private void HandleLanternInteraction()
@@ -438,8 +466,52 @@ public class PlayerInteractor : MonoBehaviour
             audioSource.Play();
         }
 
+        // Start screen shake
+        StartScreenShake();
+
         currentTarget = null;
         isInteracting = false;
+    }
+
+    private void StartScreenShake()
+    {
+        if (!isScreenShaking)
+        {
+            isScreenShaking = true;
+            screenShakeCoroutine = StartCoroutine(ScreenShake());
+        }
+    }
+
+    private void StopScreenShake()
+    {
+        if (isScreenShaking && screenShakeCoroutine != null)
+        {
+            StopCoroutine(screenShakeCoroutine);
+            isScreenShaking = false;
+
+            // Reset camera position to zero local position
+            transform.localPosition = Vector3.zero;
+        }
+    }
+
+    private IEnumerator ScreenShake()
+    {
+        Vector3 originalLocalPos = transform.localPosition;
+
+        while (isScreenShaking)
+        {
+            // Generate random shake offset
+            float offsetX = Mathf.PerlinNoise(Time.time * shakeSpeed, 0f) * 2f - 1f;
+            float offsetY = Mathf.PerlinNoise(0f, Time.time * shakeSpeed) * 2f - 1f;
+
+            Vector3 shakeOffset = new Vector3(offsetX, offsetY, 0f) * shakeIntensity;
+            transform.localPosition = originalLocalPos + shakeOffset;
+
+            yield return null;
+        }
+
+        // Reset to original position when done
+        transform.localPosition = originalLocalPos;
     }
 
     private IEnumerator ChangeLightRange(Light light, float targetRange, float duration)

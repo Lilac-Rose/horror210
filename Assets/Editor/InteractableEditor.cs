@@ -76,6 +76,7 @@ public class InteractableEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("isJammedDoor"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("jammedDoorSound"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("unjamDoorSound"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("delayedJammedAudio"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("objectToDeleteOnJammed"));
     }
 
