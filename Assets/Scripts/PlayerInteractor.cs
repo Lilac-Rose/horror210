@@ -333,7 +333,6 @@ public class PlayerInteractor : MonoBehaviour
             {
                 timothyAI.player = playerBody;
                 timothyAI.chaseSpeed = doorInteractable.timothyMoveSpeed;
-                timothyAI.activationDistance = doorInteractable.timothyActivationDistance;
                 timothyAI.killSound = doorInteractable.timothyKillSound;
             }
 
@@ -357,7 +356,16 @@ public class PlayerInteractor : MonoBehaviour
             TimothyAI timothyAI = doorInteractable.timothyObject.GetComponent<TimothyAI>();
             if (timothyAI != null)
             {
+                // Make sure player reference is set before activation
+                if (timothyAI.player == null)
+                    timothyAI.player = playerBody;
+
                 timothyAI.Activate();
+                Debug.Log("Timothy activated from FinalDoorSequence!");
+            }
+            else
+            {
+                Debug.LogError("No TimothyAI component found on timothyObject!");
             }
         }
 
