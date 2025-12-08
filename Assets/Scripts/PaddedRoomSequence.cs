@@ -11,12 +11,25 @@ public class PaddedRoomSequence : MonoBehaviour
     [Tooltip("UI Image that covers the screen (should be black)")]
     public Image fadeToBlackImage;
 
+    [Header("Player References")]
+    [Tooltip("Reference to the player controller")]
+    public PlayerController playerController;
+
+    [Tooltip("Reference to the mouse look component")]
+    public MouseLook mouseLook;
+
     [Header("Timing Settings")]
     [Tooltip("Duration of fade in from black (seconds)")]
     public float fadeInDuration = 2f;
 
-    [Tooltip("How long to wait before cutting to black (seconds)")]
-    public float waitDuration = 3f;
+    [Tooltip("How long player has control before cutting to black (seconds)")]
+    public float playerControlDuration = 10f;
+
+    [Header("Ending Settings")]
+    [Tooltip("Time to wait on black screen before loading next scene")]
+    public float blackScreenDuration = 3f;
+
+    private CanvasGroup canvasGroup;
 
     void Start()
     {
@@ -27,12 +40,19 @@ public class PaddedRoomSequence : MonoBehaviour
             fadeToBlackImage.enabled = true;
 
             // Ensure it has a CanvasGroup for smooth fading
-            CanvasGroup canvasGroup = fadeToBlackImage.GetComponent<CanvasGroup>();
+            canvasGroup = fadeToBlackImage.GetComponent<CanvasGroup>();
             if (canvasGroup == null)
                 canvasGroup = fadeToBlackImage.gameObject.AddComponent<CanvasGroup>();
 
             // Start fully black
             canvasGroup.alpha = 1f;
+
+            // Disable player controls initially
+            if (playerController != null)
+                playerController.enabled = false;
+
+            if (mouseLook != null)
+                mouseLook.enabled = false;
 
             // Start the sequence
             StartCoroutine(FadeSequence());
@@ -45,7 +65,6 @@ public class PaddedRoomSequence : MonoBehaviour
 
     private IEnumerator FadeSequence()
     {
-        CanvasGroup canvasGroup = fadeToBlackImage.GetComponent<CanvasGroup>();
 
         // 1. Fade in from black
         float elapsed = 0f;
@@ -57,13 +76,28 @@ public class PaddedRoomSequence : MonoBehaviour
         }
         canvasGroup.alpha = 0f;
 
-        // 2. Wait (player can see the room)
-        yield return new WaitForSeconds(waitDuration);
+        // 2. Enable player controls
+        if (playerController != null)
+            playerController.enabled = true;
 
-        // 3. Hard cut to black (instant)
+        if (mouseLook != null)
+            mouseLook.enabled = true;
+
+        Debug.Log("Player controls enabled in padded room");
+
+        // 3. Wait while player has control (10 seconds)
+        yield return new WaitForSeconds(playerControlDuration);
+
+        // 4. Disable player controls before cutting to black
+        if (playerController != null)
+            playerController.enabled = false;
+
+        if (mouseLook != null)
+            mouseLook.enabled = false;
+
+        // 5. Hard cut to black (instant)
         canvasGroup.alpha = 1f;
 
-        // Sequence complete - stays on black screen
-        Debug.Log("PaddedRoom sequence complete");
+        Debug.Log("PaddedRoom sequence complete - black screen");
     }
 }
