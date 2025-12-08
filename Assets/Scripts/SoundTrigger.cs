@@ -1,16 +1,24 @@
 using UnityEngine;
+using System.Collections;
 
 public class SoundTrigger : MonoBehaviour
 {
     [Header("Trigger Settings")]
     [Tooltip("The SoundPlayer objects to trigger")]
     public SoundPlayer[] soundPlayers;
-
     [Tooltip("Tag required to trigger (leave empty for any object)")]
     public string requiredTag = "Player";
-
     [Tooltip("Only trigger once, then disable")]
     public bool triggerOnce = false;
+
+    [Header("Light Intensity Settings")]
+    [Tooltip("Optional: Light to change intensity when triggered")]
+    public Light lightToChange;
+    [Range(10f, 50f)]
+    [Tooltip("Target light intensity")]
+    public float targetLightIntensity = 50f;
+    [Tooltip("Duration of light intensity change in seconds")]
+    public float lightChangeDuration = 2f;
 
     private bool hasTriggered = false;
 
@@ -32,7 +40,28 @@ public class SoundTrigger : MonoBehaviour
                 }
             }
 
+            // Change light intensity if assigned
+            if (lightToChange != null)
+            {
+                StartCoroutine(ChangeLightIntensity());
+            }
+
             hasTriggered = true;
         }
+    }
+
+    private IEnumerator ChangeLightIntensity()
+    {
+        float startIntensity = lightToChange.intensity;
+        float elapsed = 0f;
+
+        while (elapsed < lightChangeDuration)
+        {
+            elapsed += Time.deltaTime;
+            lightToChange.intensity = Mathf.Lerp(startIntensity, targetLightIntensity, elapsed / lightChangeDuration);
+            yield return null;
+        }
+
+        lightToChange.intensity = targetLightIntensity;
     }
 }
