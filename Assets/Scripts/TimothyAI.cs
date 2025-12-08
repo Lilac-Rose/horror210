@@ -41,15 +41,14 @@ public class TimothyAI : MonoBehaviour
     {
         if (!isActive || hasKilled || player == null) return;
 
+        // Move toward player (flat movement)
         Vector3 playerPosFlat = new Vector3(player.position.x, transform.position.y, player.position.z);
         Vector3 direction = (playerPosFlat - transform.position).normalized;
 
         Vector3 newPosition = transform.position + direction * chaseSpeed * Time.deltaTime;
 
         if (lockYPosition)
-        {
             newPosition.y = lockedYPosition;
-        }
 
         transform.position = newPosition;
 
@@ -59,7 +58,16 @@ public class TimothyAI : MonoBehaviour
         if (lookDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-            transform.rotation = Quaternion.Euler(0, targetRotation.eulerAngles.y, 0);
+            Vector3 rot = new Vector3(90f, targetRotation.eulerAngles.y, 0f);
+            transform.rotation = Quaternion.Euler(rot);
+        }
+        else
+        {
+            // Ensure X rotation stays locked even when not rotating
+            Vector3 rot = transform.rotation.eulerAngles;
+            rot.x = 90f;
+            rot.z = 0f;
+            transform.rotation = Quaternion.Euler(rot);
         }
     }
 
@@ -77,15 +85,11 @@ public class TimothyAI : MonoBehaviour
 
             PlayerController pc = player.GetComponent<PlayerController>();
             if (pc != null)
-            {
                 pc.enabled = false;
-            }
 
             MouseLook mouseLook = player.GetComponentInChildren<MouseLook>();
             if (mouseLook != null)
-            {
                 mouseLook.enabled = false;
-            }
 
             SceneManager.LoadScene("Hospital");
         }
