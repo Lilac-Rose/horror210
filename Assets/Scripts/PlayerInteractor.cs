@@ -304,10 +304,22 @@ public class PlayerInteractor : MonoBehaviour
             pc.walkSpeed *= doorInteractable.speedMultiplier;
         }
 
-        // 3. Rotate door on left edge
-        StartCoroutine(RotateDoor(doorInteractable));
+        // 3. Change the player's light intensity
+        Light playerLight = doorInteractable.playerLight;
+        float originalIntensity = 0f;
+        if (playerLight != null)
+        {
+            originalIntensity = playerLight.intensity;
+            yield return StartCoroutine(ChangeLightIntensity(playerLight, doorInteractable.targetLightIntensity, doorInteractable.lightDimDuration));
+        }
 
-        // 4. Activate Timothy and move him forward slowly (coming out of door)
+        // 4. Back the player away from the door
+        yield return StartCoroutine(BackPlayerAway(playerBody, doorInteractable.playerBackAwayDistance, doorInteractable.playerBackAwaySpeed));
+
+        // 5. Rotate door on left edge (horizontal swing)
+        StartCoroutine(RotateDoorHorizontal(doorInteractable));
+
+        // 6. Activate Timothy and move him forward slowly (coming out of door)
         if (doorInteractable.timothyObject != null)
         {
             doorInteractable.timothyObject.SetActive(true);
@@ -326,17 +338,17 @@ public class PlayerInteractor : MonoBehaviour
             yield return StartCoroutine(MoveTimothyForward(doorInteractable.timothyObject, doorInteractable.timothyMoveSpeed * 0.3f, 2f));
         }
 
-        // 5. Turn player camera 180 degrees (after Timothy emerges)
+        // 7. Turn player camera 180 degrees (after Timothy emerges)
         yield return StartCoroutine(RotatePlayer180(playerBody));
 
-        // 6. Start audio
+        // 8. Start audio
         if (doorInteractable.finalDoorAudio != null)
         {
             audioSource.clip = doorInteractable.finalDoorAudio;
             audioSource.Play();
         }
 
-        // 7. Activate Timothy's AI after player turns around
+        // 9. Activate Timothy's AI after player turns around
         if (doorInteractable.timothyObject != null)
         {
             TimothyAI timothyAI = doorInteractable.timothyObject.GetComponent<TimothyAI>();
@@ -346,7 +358,7 @@ public class PlayerInteractor : MonoBehaviour
             }
         }
 
-        // 8. Make objects disappear when chase starts
+        // 10. Make objects disappear when chase starts
         if (doorInteractable.objectsToDisappear != null)
         {
             foreach (GameObject obj in doorInteractable.objectsToDisappear)
@@ -360,18 +372,57 @@ public class PlayerInteractor : MonoBehaviour
         if (pc != null) pc.movementLocked = false;
         if (mouseLook != null) mouseLook.lookLocked = false;
 
+        // Start chase music when player regains control
+        if (doorInteractable.chaseMusic != null)
+        {
+            audioSource.clip = doorInteractable.chaseMusic;
+            audioSource.loop = true; // Chase music should loop
+            audioSource.Play();
+        }
+
         currentTarget = null;
         isInteracting = false;
     }
 
-    private IEnumerator RotateDoor(Interactable doorInteractable)
+    private IEnumerator ChangeLightIntensity(Light light, float targetIntensity, float duration)
+    {
+        float startIntensity = light.intensity;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            light.intensity = Mathf.Lerp(startIntensity, targetIntensity, elapsed / duration);
+            yield return null;
+        }
+
+        light.intensity = targetIntensity;
+    }
+
+    private IEnumerator BackPlayerAway(Transform player, float distance, float speed)
+    {
+        Vector3 startPosition = player.position;
+        Vector3 targetPosition = startPosition - player.forward * distance;
+        float elapsed = 0f;
+        float duration = distance / speed;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            player.position = Vector3.Lerp(startPosition, targetPosition, elapsed / duration);
+            yield return null;
+        }
+
+        player.position = targetPosition;
+    }
+
+    private IEnumerator RotateDoorHorizontal(Interactable doorInteractable)
     {
         Transform doorTransform = doorInteractable.transform;
-        float startRotation = -90f;
-        float targetRotation = 45f;
+        float targetRotation = doorInteractable.doorRotationDegrees;
         float rotationSpeed = doorInteractable.doorRotationSpeed;
 
-        // If a pivot point is assigned, use it; otherwise use the door's left edge
+        // Determine pivot point (left edge of door)
         Vector3 pivotPoint;
         if (doorPivotPoint != null)
         {
@@ -388,39 +439,28 @@ public class PlayerInteractor : MonoBehaviour
             }
             else
             {
-                // Fallback to door position
                 pivotPoint = doorTransform.position;
             }
         }
 
-        // Set initial rotation
-        doorTransform.rotation = Quaternion.Euler(doorTransform.rotation.eulerAngles.x,
-                                                   doorTransform.rotation.eulerAngles.y,
-                                                   startRotation);
+        float currentRotation = 0f;
 
-        float currentRotation = startRotation;
-        float totalRotation = targetRotation - startRotation; // 135 degrees total
-
-        while (Mathf.Abs(currentRotation - targetRotation) > 0.1f)
+        while (currentRotation < targetRotation)
         {
             float deltaRotation = rotationSpeed * Time.deltaTime;
 
-            // Rotate around the pivot point on Z axis
-            doorTransform.RotateAround(pivotPoint, Vector3.forward, deltaRotation);
+            if (currentRotation + deltaRotation > targetRotation)
+            {
+                deltaRotation = targetRotation - currentRotation;
+            }
+
+            // Rotate around the pivot point on Y axis (horizontal rotation like a door)
+            doorTransform.RotateAround(pivotPoint, Vector3.up, deltaRotation);
 
             currentRotation += deltaRotation;
 
-            // Clamp to target
-            if (currentRotation >= targetRotation)
-            {
-                break;
-            }
-
             yield return null;
         }
-
-        // Ensure final rotation is exact
-        doorTransform.RotateAround(pivotPoint, Vector3.forward, targetRotation - currentRotation);
     }
 
     private IEnumerator MoveTimothyForward(GameObject timothy, float speed, float duration)

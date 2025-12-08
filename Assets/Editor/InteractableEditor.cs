@@ -155,7 +155,31 @@ public class InteractableEditor : Editor
         prop = serializedObject.FindProperty("finalDoorAudio");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
+        prop = serializedObject.FindProperty("chaseMusic");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
         prop = serializedObject.FindProperty("timothyKillSound");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Light Settings", EditorStyles.boldLabel);
+
+        prop = serializedObject.FindProperty("playerLight");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("targetLightIntensity");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("lightDimDuration");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Player Movement", EditorStyles.boldLabel);
+
+        prop = serializedObject.FindProperty("playerBackAwayDistance");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("playerBackAwaySpeed");
         if (prop != null) EditorGUILayout.PropertyField(prop);
     }
 
@@ -172,6 +196,9 @@ public class InteractableEditor : Editor
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
         prop = serializedObject.FindProperty("gunUIImage");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        prop = serializedObject.FindProperty("shotEndingBlackImage");
         if (prop != null) EditorGUILayout.PropertyField(prop);
     }
 }
