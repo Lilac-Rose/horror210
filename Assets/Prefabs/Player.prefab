@@ -419,5 +419,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSpeed: 6
   gravity: -9.81
+  footstepSound: {fileID: 0}
+  footstepVolume: 0.5
   showDebugInfo: 1
   movementLocked: 0
