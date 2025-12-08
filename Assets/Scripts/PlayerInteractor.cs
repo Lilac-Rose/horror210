@@ -582,7 +582,6 @@ public class PlayerInteractor : MonoBehaviour
             gunInteractable.shotEndingBlackImage.enabled = true;
         }
 
-        // Wait a moment
         yield return new WaitForSeconds(1f);
 
         // Load the PaddedRoom scene
