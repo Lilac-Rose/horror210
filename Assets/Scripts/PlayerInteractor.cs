@@ -205,11 +205,11 @@ public class PlayerInteractor : MonoBehaviour
 
     private IEnumerator PlayDelayedJammedAudio(AudioClip audioClip, Vector3 position)
     {
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1f);
 
         if (audioClip != null)
         {
-            AudioSource.PlayClipAtPoint(audioClip, position);
+            AudioSource.PlayClipAtPoint(audioClip, position, 1.5f);
         }
     }
 
@@ -698,20 +698,6 @@ public class PlayerInteractor : MonoBehaviour
         }
     }
 
-    private IEnumerator RotatePlayer180(Transform player)
-    {
-        float rotationSpeed = 360f; // degrees per second
-        float rotated = 0f;
-
-        while (rotated < 180f)
-        {
-            float deltaRotation = rotationSpeed * Time.deltaTime;
-            player.Rotate(0, deltaRotation, 0);
-            rotated += deltaRotation;
-            yield return null;
-        }
-    }
-
     private IEnumerator BathroomSinkSequence(Interactable sinkInteractable)
     {
         isInteracting = true;
@@ -795,7 +781,7 @@ public class PlayerInteractor : MonoBehaviour
 
         // Play photo display sound before fadeout
         if (photoInteractable.photoDisplaySound != null)
-            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position);
+            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 2f);
 
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;
