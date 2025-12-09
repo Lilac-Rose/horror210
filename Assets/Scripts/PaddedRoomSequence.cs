@@ -27,7 +27,7 @@ public class PaddedRoomSequence : MonoBehaviour
     public float spawnDelay = 10f;
 
     [Tooltip("Angle from center of screen to trigger credits (degrees)")]
-    public float centerDetectionAngle = 15f;
+    public float centerDetectionAngle = 40f;
 
     [Header("Timing Settings")]
     [Tooltip("Duration of initial black screen before fade in (seconds)")]

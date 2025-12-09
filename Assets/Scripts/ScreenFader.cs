@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class ScreenFader : MonoBehaviour
@@ -16,6 +17,7 @@ public class ScreenFader : MonoBehaviour
     {
         // Singleton
         Instance = this;
+
         // Make sure fadeImage is transparent and disabled at start
         fadeImage.color = new Color(0, 0, 0, 0);
         fadeImage.enabled = false;
@@ -33,11 +35,21 @@ public class ScreenFader : MonoBehaviour
         StartCoroutine(FadeRoutine(player, target, doorCloseSound));
     }
 
+    /// <summary>
+    /// Fades to black and loads a new scene.
+    /// </summary>
+    /// <param name="sceneName">Name of the scene to load</param>
+    public void FadeToScene(string sceneName)
+    {
+        StartCoroutine(FadeToSceneRoutine(sceneName));
+    }
+
     private IEnumerator FadeRoutine(Transform player, Transform target, AudioClip doorCloseSound)
     {
         // Lock movement and look
         PlayerController pc = player.GetComponent<PlayerController>();
         MouseLook ml = player.GetComponentInChildren<MouseLook>();
+
         if (pc != null) pc.movementLocked = true;
         if (ml != null) ml.lookLocked = true;
 
@@ -84,5 +96,19 @@ public class ScreenFader : MonoBehaviour
         // Unlock movement and look
         if (pc != null) pc.movementLocked = false;
         if (ml != null) ml.lookLocked = false;
+    }
+
+    private IEnumerator FadeToSceneRoutine(string sceneName)
+    {
+        // Enable fade image
+        fadeImage.enabled = true;
+
+        fadeImage.color = Color.black;
+
+        // Wait with the black screen
+        yield return new WaitForSeconds(sustainTime);
+
+        // Load the new scene
+        SceneManager.LoadScene(sceneName);
     }
 }

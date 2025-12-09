@@ -209,7 +209,7 @@ public class PlayerInteractor : MonoBehaviour
 
         if (audioClip != null)
         {
-            AudioSource.PlayClipAtPoint(audioClip, position, 1.5f);
+            AudioSource.PlayClipAtPoint(audioClip, position, 5f);
         }
     }
 
@@ -415,24 +415,24 @@ public class PlayerInteractor : MonoBehaviour
         // Trigger shot ending flag
         Interactable.shotEndingTriggered = true;
 
-        // Disable player controls immediately
+        // Wait for gun sound to play
+        float gunSoundLength = Interactable.StoredGunShootSound != null ? Interactable.StoredGunShootSound.length : 1f;
+        yield return new WaitForSeconds(gunSoundLength + 0.5f);
+
+        // Destroy Timothy
+        Destroy(timothy.gameObject);
+
+        Debug.Log("Timothy shot! Fading to PaddedRoom scene.");
+
+        // Disable player controls before fade
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         MouseLook mouseLook = GetComponent<MouseLook>();
 
         if (pc != null) pc.enabled = false;
         if (mouseLook != null) mouseLook.enabled = false;
 
-        // Wait for gun sound to play (adjust time based on your sound clip length)
-        float gunSoundLength = Interactable.StoredGunShootSound != null ? Interactable.StoredGunShootSound.length : 1f;
-        yield return new WaitForSeconds(gunSoundLength + 0.5f); // Add 0.5s buffer
-
-        // Destroy Timothy
-        Destroy(timothy.gameObject);
-
-        Debug.Log("Timothy shot! Loading PaddedRoom scene.");
-
-        // Load the PaddedRoom scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
+        // Fade to black and load the PaddedRoom scene
+        ScreenFader.Instance.FadeToScene("PaddedRoom");
     }
 
     private IEnumerator FinalDoorSequence(Interactable doorInteractable)
@@ -781,7 +781,7 @@ public class PlayerInteractor : MonoBehaviour
 
         // Play photo display sound before fadeout
         if (photoInteractable.photoDisplaySound != null)
-            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 2f);
+            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 10f);
 
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;
