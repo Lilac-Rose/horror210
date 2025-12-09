@@ -8,13 +8,16 @@ public class HospitalEndingSequence : MonoBehaviour
     [Tooltip("UI Image that covers the screen (should be black)")]
     public Image fadeToBlackImage;
 
-    [Header("Camera Controls")]
+    [Tooltip("Main camera to control (leave empty to auto-find)")]
+    public Camera playerCamera;
 
+    [Header("Camera Controls")]
     [Tooltip("Camera sensitivity during the sequence")]
     public float cameraSensitivity = 2f;
 
-    [Tooltip("Camera rotation limits in degrees (minY, maxY)")]
-    public Vector2 cameraRotationLimits = new Vector2(-30f, 30f);
+    [Tooltip("Camera rotation limits in degrees - 30 degrees in all directions")]
+    public Vector2 cameraRotationLimitsX = new Vector2(-30f, 30f);
+    public Vector2 cameraRotationLimitsY = new Vector2(-30f, 30f);
 
     [Header("Timing Settings")]
     [Tooltip("Duration of initial black screen before fade in (seconds)")]
@@ -27,8 +30,8 @@ public class HospitalEndingSequence : MonoBehaviour
     public float lookAroundDuration = 10f;
 
     [Header("Ending Settings")]
-    [Tooltip("Load next scene after black screen (optional)")]
-    public string nextSceneName = "";
+    [Tooltip("Load next scene after black screen")]
+    public string nextSceneName = "Credits";
 
     [Tooltip("Time to wait on black screen before loading next scene")]
     public float blackScreenDuration = 3f;
@@ -57,10 +60,21 @@ public class HospitalEndingSequence : MonoBehaviour
             // Start fully black
             canvasGroup.alpha = 1f;
 
-            // Store initial camera rotation
-            if (Camera.main != null)
+            // Find camera if not assigned
+            if (playerCamera == null)
             {
-                initialCameraRotation = Camera.main.transform.localRotation;
+                playerCamera = Camera.main;
+            }
+
+            // Store initial camera rotation
+            if (playerCamera != null)
+            {
+                initialCameraRotation = playerCamera.transform.localRotation;
+                Debug.Log("HospitalEndingSequence: Camera found and initialized");
+            }
+            else
+            {
+                Debug.LogError("HospitalEndingSequence: No camera found! Please assign playerCamera in Inspector.");
             }
 
             // Start the sequence
@@ -115,10 +129,21 @@ public class HospitalEndingSequence : MonoBehaviour
         canvasGroup.alpha = 1f;
 
         Debug.Log("Hospital ending sequence complete - black screen");
+
+        // 6. Wait on black screen, then load Credits
+        yield return new WaitForSeconds(blackScreenDuration);
+
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            Debug.Log("Loading Credits scene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+        }
     }
 
     private void HandleCameraLook()
     {
+        if (playerCamera == null) return;
+
         // Get mouse input
         float mouseX = Input.GetAxis("Mouse X") * cameraSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * cameraSensitivity;
@@ -127,14 +152,12 @@ public class HospitalEndingSequence : MonoBehaviour
         cameraRotationY += mouseX;
         cameraRotationX -= mouseY;
 
-        // Clamp vertical rotation
-        cameraRotationX = Mathf.Clamp(cameraRotationX, cameraRotationLimits.x, cameraRotationLimits.y);
+        // Clamp both horizontal and vertical rotation to 30 degrees
+        cameraRotationX = Mathf.Clamp(cameraRotationX, cameraRotationLimitsX.x, cameraRotationLimitsX.y);
+        cameraRotationY = Mathf.Clamp(cameraRotationY, cameraRotationLimitsY.x, cameraRotationLimitsY.y);
 
         // Apply rotation to camera
-        if (Camera.main != null)
-        {
-            Quaternion rotation = Quaternion.Euler(cameraRotationX, cameraRotationY, 0f);
-            Camera.main.transform.localRotation = initialCameraRotation * rotation;
-        }
+        Quaternion rotation = Quaternion.Euler(cameraRotationX, cameraRotationY, 0f);
+        playerCamera.transform.localRotation = initialCameraRotation * rotation;
     }
 }

@@ -14,6 +14,10 @@ public class TimothyAI : MonoBehaviour
     [Header("Audio")]
     public AudioClip killSound;
 
+    [Header("Light Settings")]
+    [Tooltip("Point light that activates when chase starts")]
+    public Light timothyLight;
+
     private bool isActive = false;
     private bool hasKilled = false;
 
@@ -29,12 +33,30 @@ public class TimothyAI : MonoBehaviour
             if (playerObj != null)
                 player = playerObj.transform;
         }
+
+        // Get the light component if not assigned
+        if (timothyLight == null)
+        {
+            timothyLight = GetComponentInChildren<Light>();
+        }
+
+        // Make sure light starts off
+        if (timothyLight != null)
+        {
+            timothyLight.enabled = false;
+        }
     }
 
     public void Activate()
     {
         isActive = true;
         lockedYPosition = transform.position.y;
+
+        // Turn on the light when chase starts
+        if (timothyLight != null)
+        {
+            timothyLight.enabled = true;
+        }
     }
 
     void Update()
@@ -44,7 +66,6 @@ public class TimothyAI : MonoBehaviour
         // Move toward player (flat movement)
         Vector3 playerPosFlat = new Vector3(player.position.x, transform.position.y, player.position.z);
         Vector3 direction = (playerPosFlat - transform.position).normalized;
-
         Vector3 newPosition = transform.position + direction * chaseSpeed * Time.deltaTime;
 
         if (lockYPosition)

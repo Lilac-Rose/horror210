@@ -268,6 +268,17 @@ public class PlayerInteractor : MonoBehaviour
 
     private void HandleGunShoot()
     {
+        // ALWAYS play gun sound first, regardless of what we hit
+        if (Interactable.StoredGunShootSound != null)
+        {
+            Debug.Log("Playing gun sound at volume 1.0");
+            AudioSource.PlayClipAtPoint(Interactable.StoredGunShootSound, transform.position, 1f);
+        }
+        else
+        {
+            Debug.LogWarning("StoredGunShootSound is NULL - gun sound was not stored properly on pickup");
+        }
+
         // Debug: Check if gun is equipped
         if (!Interactable.HasGun)
         {
@@ -306,18 +317,7 @@ public class PlayerInteractor : MonoBehaviour
 
                 if (timothy.IsActive)
                 {
-                    Debug.Log("Timothy is active, shooting!");
-
-                    // Play gun sound using stored audio clip
-                    if (Interactable.StoredGunShootSound != null)
-                    {
-                        Debug.Log("Playing gun sound");
-                        AudioSource.PlayClipAtPoint(Interactable.StoredGunShootSound, transform.position, 1f);
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Gun shoot sound not found or not stored");
-                    }
+                    Debug.Log("Timothy is active, triggering shot ending!");
 
                     // Trigger shot ending
                     Interactable.shotEndingTriggered = true;
