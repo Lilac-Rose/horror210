@@ -1869,10 +1869,11 @@ MonoBehaviour:
   mouseLook: {fileID: 546011133}
   objectToSpawn: {fileID: 2096506005}
   spawnDelay: 10
-  centerDetectionAngle: 15
+  centerDetectionAngle: 40
   initialBlackScreenDuration: 3
   fadeInDuration: 2
   blackScreenDuration: 3
+  debugMode: 0
 --- !u!43 &722401389
 Mesh:
   m_ObjectHideFlags: 0
