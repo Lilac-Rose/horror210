@@ -220,7 +220,7 @@ public class PlayerInteractor : MonoBehaviour
 
         if (audioClip != null)
         {
-            audioSource.PlayOneShot(audioClip, 5f);
+            audioSource.PlayOneShot(audioClip, 2f);
         }
     }
 
@@ -859,7 +859,7 @@ public class PlayerInteractor : MonoBehaviour
 
         if (photoInteractable.photoDisplaySound != null)
         {
-            audioSource.PlayOneShot(photoInteractable.photoDisplaySound, 5f);
+            audioSource.PlayOneShot(photoInteractable.photoDisplaySound, 2f);
         }
 
         Vector3 newPos = playerBody.position;
