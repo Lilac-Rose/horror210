@@ -31,6 +31,7 @@ public class Interactable : MonoBehaviour
 
     [Header("Crowbar Settings")]
     public TextTrigger crowbarPickupTrigger;
+    public AudioClip crowbarPickupSound;
 
     [Header("Lantern Settings")]
     public AudioClip lanternPickupSound;
@@ -209,6 +210,9 @@ public class Interactable : MonoBehaviour
         if (type != InteractableType.Crowbar) return false;
 
         hasCrowbar = true;
+
+        if (crowbarPickupSound != null)
+            AudioSource.PlayClipAtPoint(crowbarPickupSound, transform.position);
 
         if (crowbarPickupTrigger != null)
             crowbarPickupTrigger.TriggerText();
