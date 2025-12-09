@@ -175,8 +175,8 @@ MonoBehaviour:
   creditsMusic: {fileID: 0}
   knockInterval: 0.3
   titleDisplayDuration: 1
-  scrollSpeed: 50
-  endDelay: 2
+  scrollSpeed: 100
+  endDelay: 10
   mainMenuSceneName: MainMenu
 --- !u!1 &658222208
 GameObject:
@@ -785,21 +785,21 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Creative Director: Hayden Kwon
 
-    
+
 
     2D Artists: Hayden Kwon
 
-    
+
 
     3D
     Artists: Hayden Kwon, Ella Hobbs, Dante Smalls
 
-    
+
 
     Level Designers: Hayden
     Kwon, Ella Hobbs
 
-    
+
 
     Gameplay Designers: Hayden Kwon, Ella Hobbs
 
@@ -807,18 +807,18 @@ MonoBehaviour:
     Sound
     Designer: Ella Hobbs
 
-    
+
 
     Programmers: Ella Hobbs
 
-    
 
-    Sound Effects:
-    Pixabay
 
-    
+    Sound Effects: Pixabay
 
-    Playtesters: Hayden Kwon, Ella Hobbs'
+
+
+    Playtesters:
+    Hayden Kwon, Ella Hobbs'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bbb51e3e9ff69ee4e8494f8cdb0a3249, type: 2}
   m_sharedMaterial: {fileID: 8384368609211512195, guid: bbb51e3e9ff69ee4e8494f8cdb0a3249, type: 2}
