@@ -451,8 +451,7 @@ public class PlayerInteractor : MonoBehaviour
         // Now cut to black and load the PaddedRoom scene
         Debug.Log("Timothy shot! Cutting to black and loading PaddedRoom scene.");
 
-        // Fade to black and load the PaddedRoom scene immediately
-        ScreenFader.Instance.FadeToScene("PaddedRoom");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
     }
 
     private IEnumerator FinalDoorSequence(Interactable doorInteractable)
