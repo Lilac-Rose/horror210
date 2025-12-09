@@ -28,6 +28,7 @@ public class Interactable : MonoBehaviour
     public AudioClip delayedJammedAudio;
     [Tooltip("Object to delete when jammed door is interacted with (without crowbar)")]
     public GameObject objectToDeleteOnJammed;
+    [HideInInspector] public bool jammedAudioPlayed = false;
 
     [Header("Crowbar Settings")]
     public TextTrigger crowbarPickupTrigger;
