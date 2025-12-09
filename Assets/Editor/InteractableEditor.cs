@@ -108,6 +108,7 @@ public class InteractableEditor : Editor
     {
         EditorGUILayout.LabelField("Crowbar Settings", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("crowbarPickupTrigger"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("crowbarPickupSound"));
     }
 
     void ShowBathroomSinkSettings()

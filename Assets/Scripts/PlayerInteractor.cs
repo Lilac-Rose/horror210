@@ -312,7 +312,7 @@ public class PlayerInteractor : MonoBehaviour
                     if (Interactable.StoredGunShootSound != null)
                     {
                         Debug.Log("Playing gun sound");
-                        audioSource.PlayOneShot(Interactable.StoredGunShootSound);
+                        AudioSource.PlayClipAtPoint(Interactable.StoredGunShootSound, transform.position, 1f);
                     }
                     else
                     {
@@ -394,10 +394,17 @@ public class PlayerInteractor : MonoBehaviour
         // 4. Back the player away from the door
         yield return StartCoroutine(BackPlayerAway(playerBody, doorInteractable.playerBackAwayDistance, doorInteractable.playerBackAwaySpeed));
 
-        // 5. Rotate door on left edge (horizontal swing)
+        // 5. Play final door audio when door starts opening
+        if (doorInteractable.finalDoorAudio != null)
+        {
+            audioSource.clip = doorInteractable.finalDoorAudio;
+            audioSource.Play();
+        }
+
+        // 6. Rotate door on left edge (horizontal swing)
         StartCoroutine(RotateDoorHorizontal(doorInteractable));
 
-        // 6. Activate Timothy and move him forward slowly (coming out of door)
+        // 7. Activate Timothy and move him forward slowly (coming out of door)
         if (doorInteractable.timothyObject != null)
         {
             doorInteractable.timothyObject.SetActive(true);
@@ -415,15 +422,8 @@ public class PlayerInteractor : MonoBehaviour
             yield return StartCoroutine(MoveTimothyForward(doorInteractable.timothyObject, doorInteractable.timothyMoveSpeed * 0.3f, 2f));
         }
 
-        // 7. Turn player camera 180 degrees (after Timothy emerges)
-        yield return StartCoroutine(RotatePlayer180(playerBody));
-
-        // 8. Start audio
-        if (doorInteractable.finalDoorAudio != null)
-        {
-            audioSource.clip = doorInteractable.finalDoorAudio;
-            audioSource.Play();
-        }
+        // 8. Turn player camera 180 degrees (after Timothy emerges)
+        // yield return StartCoroutine(RotatePlayer180(playerBody));
 
         // 9. Activate Timothy's AI after player turns around
         if (doorInteractable.timothyObject != null)
