@@ -89,6 +89,9 @@ public class MenuController : MonoBehaviour
     // -----------------------
     public void StartGame()
     {
+        // RESET ALL STATIC VARIABLES BEFORE LOADING SCENE
+        Interactable.ResetAllFlags();
+
         SceneManager.LoadScene("Main");
     }
 
