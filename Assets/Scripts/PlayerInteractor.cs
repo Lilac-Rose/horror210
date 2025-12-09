@@ -506,7 +506,7 @@ public class PlayerInteractor : MonoBehaviour
 
         // 2. Step back slightly (very quick - 0.3 seconds)
         Vector3 startPosition = playerBody.position;
-        Vector3 stepBackPosition = startPosition - playerBody.forward * 0.5f; // Small step back
+        Vector3 stepBackPosition = startPosition - playerBody.forward * 10f; // Small step back
 
         float stepBackDuration = 0.3f;
         float elapsed = 0f;
