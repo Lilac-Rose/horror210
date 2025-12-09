@@ -17,6 +17,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PaddedRoom.unity
     guid: 0493d43cd0f3c2c419f60165888f255d
+  - enabled: 1
+    path: Assets/Scenes/Credits.unity
+    guid: 8f16a889b4fad9344a0a3893f8fa0808
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
