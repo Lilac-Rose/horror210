@@ -465,12 +465,15 @@ public class PlayerInteractor : MonoBehaviour
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         MouseLook mouseLook = GetComponent<MouseLook>();
 
+        // Store original walk speed
+        float originalWalkSpeed = 0f;
+
         if (pc != null)
         {
+            originalWalkSpeed = pc.walkSpeed;
             pc.movementLocked = true;
             pc.StopFootsteps();
         }
-
         if (mouseLook != null)
         {
             mouseLook.lookLocked = true;
@@ -507,10 +510,8 @@ public class PlayerInteractor : MonoBehaviour
         // 2. Step back slightly (very quick - 0.3 seconds)
         Vector3 startPosition = playerBody.position;
         Vector3 stepBackPosition = startPosition - playerBody.forward * 10f; // Small step back
-
         float stepBackDuration = 0.3f;
         float elapsed = 0f;
-
         while (elapsed < stepBackDuration)
         {
             elapsed += Time.deltaTime;
@@ -533,7 +534,6 @@ public class PlayerInteractor : MonoBehaviour
         if (doorInteractable.timothyObject != null)
         {
             doorInteractable.timothyObject.SetActive(true);
-
             // Position Timothy right in the doorway
             TimothyAI timothyAI = doorInteractable.timothyObject.GetComponent<TimothyAI>();
             if (timothyAI != null)
@@ -541,7 +541,6 @@ public class PlayerInteractor : MonoBehaviour
                 timothyAI.player = playerBody;
                 timothyAI.chaseSpeed = doorInteractable.timothyMoveSpeed;
                 timothyAI.killSound = doorInteractable.timothyKillSound;
-
                 // Activate Timothy immediately
                 timothyAI.Activate();
             }
@@ -563,9 +562,17 @@ public class PlayerInteractor : MonoBehaviour
         // Brief pause to see Timothy (0.2 seconds)
         yield return new WaitForSeconds(0.2f);
 
-        // 5. Re-enable controls and start chase
-        if (pc != null) pc.movementLocked = false;
-        if (mouseLook != null) mouseLook.lookLocked = false;
+        // 5. Re-enable controls and BOOST PLAYER SPEED by 2x
+        if (pc != null)
+        {
+            pc.movementLocked = false;
+            // Apply 2x speed multiplier (using speedMultiplier from doorInteractable)
+            pc.walkSpeed = originalWalkSpeed * doorInteractable.speedMultiplier;
+
+            Debug.Log($"Player speed boosted from {originalWalkSpeed} to {pc.walkSpeed}");
+        }
+        if (mouseLook != null)
+            mouseLook.lookLocked = false;
 
         // Start chase music
         if (doorInteractable.chaseMusic != null)
