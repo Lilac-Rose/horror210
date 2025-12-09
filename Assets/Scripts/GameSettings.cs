@@ -10,7 +10,6 @@ public class GameSettings : MonoBehaviour
 
     // Current settings
     private float masterVolume;
-    private float fov;
     private float mouseSensitivity;
 
     // Property accessors
@@ -22,6 +21,7 @@ public class GameSettings : MonoBehaviour
             masterVolume = Mathf.Clamp01(value);
             AudioListener.volume = masterVolume;
             PlayerPrefs.SetFloat("MasterVolume", masterVolume);
+            PlayerPrefs.Save(); // Force save immediately
         }
     }
 
@@ -32,6 +32,7 @@ public class GameSettings : MonoBehaviour
         {
             mouseSensitivity = Mathf.Clamp(value, 150f, 800f);
             PlayerPrefs.SetFloat("MouseSensitivity", mouseSensitivity);
+            PlayerPrefs.Save(); // Force save immediately
             ApplyMouseSensitivity();
         }
     }
@@ -41,35 +42,28 @@ public class GameSettings : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject); // Persist across scenes
             LoadSettings();
+            ApplyAllSettings(); // Apply once on creation
         }
         else
         {
             Destroy(gameObject);
         }
     }
-
-    void Start()
-    {
-        ApplyAllSettings();
-    }
-
-    void OnEnable()
-    {
-        ApplyAllSettings();
-    }
-
     private void LoadSettings()
     {
         masterVolume = PlayerPrefs.GetFloat("MasterVolume", defaultMasterVolume);
         mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", defaultMouseSensitivity);
     }
 
-    public void ApplyAllSettings()
+    private void ApplyAllSettings()
     {
+        // Use the property setters to ensure consistency
         AudioListener.volume = masterVolume;
         ApplyMouseSensitivity();
     }
+
     private void ApplyMouseSensitivity()
     {
         MouseLook mouseLook = FindFirstObjectByType<MouseLook>();

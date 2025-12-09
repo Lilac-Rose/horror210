@@ -220,7 +220,7 @@ public class PlayerInteractor : MonoBehaviour
 
         if (audioClip != null)
         {
-            AudioSource.PlayClipAtPoint(audioClip, position, 5f);
+            audioSource.PlayOneShot(audioClip, 5f);
         }
     }
 
@@ -851,9 +851,10 @@ public class PlayerInteractor : MonoBehaviour
 
         yield return new WaitForSeconds(photoInteractable.photoDisplayDuration);
 
-        // Play photo display sound before fadeout
         if (photoInteractable.photoDisplaySound != null)
-            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 50f);
+        {
+            audioSource.PlayOneShot(photoInteractable.photoDisplaySound, 5f);
+        }
 
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;
