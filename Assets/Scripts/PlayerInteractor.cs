@@ -401,6 +401,17 @@ public class PlayerInteractor : MonoBehaviour
 
     private IEnumerator ShootTimothySequence(TimothyAI timothy)
     {
+        // Disable player controls immediately
+        PlayerController pc = playerBody.GetComponent<PlayerController>();
+        MouseLook mouseLook = GetComponent<MouseLook>();
+
+        if (pc != null)
+        {
+            pc.enabled = false;
+            pc.StopFootsteps();
+        }
+        if (mouseLook != null) mouseLook.enabled = false;
+
         // Play gun sound
         if (Interactable.StoredGunShootSound != null)
         {
@@ -415,23 +426,16 @@ public class PlayerInteractor : MonoBehaviour
         // Trigger shot ending flag
         Interactable.shotEndingTriggered = true;
 
-        // Wait for gun sound to play
-        float gunSoundLength = Interactable.StoredGunShootSound != null ? Interactable.StoredGunShootSound.length : 1f;
-        yield return new WaitForSeconds(gunSoundLength + 0.5f);
-
-        // Destroy Timothy
+        // Destroy Timothy immediately to stop him from approaching
         Destroy(timothy.gameObject);
+
+        // Wait briefly for gun sound
+        float gunSoundLength = Interactable.StoredGunShootSound != null ? Interactable.StoredGunShootSound.length : 1f;
+        yield return new WaitForSeconds(Mathf.Min(gunSoundLength, 0.5f));
 
         Debug.Log("Timothy shot! Fading to PaddedRoom scene.");
 
-        // Disable player controls before fade
-        PlayerController pc = playerBody.GetComponent<PlayerController>();
-        MouseLook mouseLook = GetComponent<MouseLook>();
-
-        if (pc != null) pc.enabled = false;
-        if (mouseLook != null) mouseLook.enabled = false;
-
-        // Fade to black and load the PaddedRoom scene
+        // Fade to black and load the PaddedRoom scene immediately
         ScreenFader.Instance.FadeToScene("PaddedRoom");
     }
 
@@ -451,6 +455,15 @@ public class PlayerInteractor : MonoBehaviour
 
         if (pc != null) pc.movementLocked = true;
         if (mouseLook != null) mouseLook.lookLocked = true;
+
+        // 0. Teleport player to door interaction position (X and Z only, preserve Y)
+        if (doorInteractable.playerTeleportPosition != null)
+        {
+            Vector3 newPos = playerBody.position;
+            newPos.x = doorInteractable.playerTeleportPosition.position.x;
+            newPos.z = doorInteractable.playerTeleportPosition.position.z;
+            playerBody.position = newPos;
+        }
 
         // 1. Make objects appear
         if (doorInteractable.objectsToAppear != null)

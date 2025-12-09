@@ -130,11 +130,23 @@ public class InteractableEditor : Editor
 
         SerializedProperty prop;
 
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Player Teleport", EditorStyles.boldLabel);
+
+        prop = serializedObject.FindProperty("playerTeleportPosition");
+        if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Objects", EditorStyles.boldLabel);
+
         prop = serializedObject.FindProperty("objectsToAppear");
         if (prop != null) EditorGUILayout.PropertyField(prop, true);
 
         prop = serializedObject.FindProperty("objectsToDisappear");
         if (prop != null) EditorGUILayout.PropertyField(prop, true);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Door Settings", EditorStyles.boldLabel);
 
         prop = serializedObject.FindProperty("speedMultiplier");
         if (prop != null) EditorGUILayout.PropertyField(prop);
@@ -148,6 +160,9 @@ public class InteractableEditor : Editor
         prop = serializedObject.FindProperty("doorPivotPoint");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Timothy Settings", EditorStyles.boldLabel);
+
         prop = serializedObject.FindProperty("timothyObject");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
@@ -156,6 +171,9 @@ public class InteractableEditor : Editor
 
         prop = serializedObject.FindProperty("timothyActivationDistance");
         if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Audio Settings", EditorStyles.boldLabel);
 
         prop = serializedObject.FindProperty("finalDoorAudio");
         if (prop != null) EditorGUILayout.PropertyField(prop);

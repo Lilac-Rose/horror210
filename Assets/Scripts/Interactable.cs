@@ -58,6 +58,10 @@ public class Interactable : MonoBehaviour
     public AudioClip photoDisplaySound;
 
     [Header("Final Door Settings")]
+    [Header("Final Door - Player Teleport")]
+    [Tooltip("Position to teleport the player to when interacting (X and Z only, Y is preserved)")]
+    public Transform playerTeleportPosition;
+
     public GameObject[] objectsToAppear;
     public GameObject[] objectsToDisappear;
     public float speedMultiplier = 2f;
