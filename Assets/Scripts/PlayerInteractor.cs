@@ -66,8 +66,18 @@ public class PlayerInteractor : MonoBehaviour
             muzzleFlashLight.enabled = false;
             muzzleFlashLight.range = 0f;
         }
-    }
 
+        // Reset instance variables
+        hasTeleported = false;
+        isInteracting = false;
+        currentTarget = null;
+
+        // Stop any ongoing screen shake
+        if (isScreenShaking)
+        {
+            StopScreenShake();
+        }
+    }
     void Update()
     {
         if (!isInteracting)
@@ -401,9 +411,13 @@ public class PlayerInteractor : MonoBehaviour
 
     private IEnumerator ShootTimothySequence(TimothyAI timothy)
     {
-        // Disable player controls immediately
+        // Disable player controls and lock position immediately
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         MouseLook mouseLook = GetComponent<MouseLook>();
+        CharacterController characterController = playerBody.GetComponent<CharacterController>();
+
+        // Store current position to prevent falling through floor
+        Vector3 lockedPosition = playerBody.position;
 
         if (pc != null)
         {
@@ -411,6 +425,7 @@ public class PlayerInteractor : MonoBehaviour
             pc.StopFootsteps();
         }
         if (mouseLook != null) mouseLook.enabled = false;
+        if (characterController != null) characterController.enabled = false;
 
         // Play gun sound
         if (Interactable.StoredGunShootSound != null)
@@ -429,11 +444,11 @@ public class PlayerInteractor : MonoBehaviour
         // Destroy Timothy immediately to stop him from approaching
         Destroy(timothy.gameObject);
 
-        // Wait briefly for gun sound
-        float gunSoundLength = Interactable.StoredGunShootSound != null ? Interactable.StoredGunShootSound.length : 1f;
-        yield return new WaitForSeconds(Mathf.Min(gunSoundLength, 0.5f));
+        // Wait 0.1 seconds before cutting to black
+        yield return new WaitForSeconds(0.1f);
 
-        Debug.Log("Timothy shot! Fading to PaddedRoom scene.");
+        // Now cut to black and load the PaddedRoom scene
+        Debug.Log("Timothy shot! Cutting to black and loading PaddedRoom scene.");
 
         // Fade to black and load the PaddedRoom scene immediately
         ScreenFader.Instance.FadeToScene("PaddedRoom");

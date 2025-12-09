@@ -11,6 +11,13 @@ public class HospitalEndingSequence : MonoBehaviour
     [Tooltip("Main camera to control (leave empty to auto-find)")]
     public Camera playerCamera;
 
+    [Header("Player References")]
+    [Tooltip("Reference to the player controller")]
+    public PlayerController playerController;
+
+    [Tooltip("Reference to the mouse look component")]
+    public MouseLook mouseLook;
+
     [Header("Camera Controls")]
     [Tooltip("Camera sensitivity during the sequence")]
     public float cameraSensitivity = 2f;
@@ -26,18 +33,27 @@ public class HospitalEndingSequence : MonoBehaviour
     [Tooltip("Duration of fade in from black (seconds)")]
     public float fadeInDuration = 2f;
 
-    [Tooltip("How long player can look around before cutting to black (seconds)")]
+    [Tooltip("How long player can look around before fading to black (seconds)")]
     public float lookAroundDuration = 10f;
+
+    [Header("Fade Out Settings")]
+    [Tooltip("Duration of fade to black (seconds)")]
+    public float fadeOutDuration = 2f;
+
+    [Tooltip("Time to wait on black screen before loading credits")]
+    public float blackScreenDuration = 2f;
 
     [Header("Ending Settings")]
     [Tooltip("Load next scene after black screen")]
     public string nextSceneName = "Credits";
 
-    [Tooltip("Time to wait on black screen before loading next scene")]
-    public float blackScreenDuration = 3f;
+    [Header("Debug Settings")]
+    [Tooltip("Enable detailed debug logging")]
+    public bool debugMode = true;
 
     private CanvasGroup canvasGroup;
     private bool isLookingAround = false;
+    private bool creditsTriggered = false;
 
     // Camera look variables
     private float cameraRotationX = 0f;
@@ -46,6 +62,21 @@ public class HospitalEndingSequence : MonoBehaviour
 
     void Start()
     {
+        // Auto-find player components if not assigned
+        if (playerController == null)
+        {
+            playerController = FindFirstObjectByType<PlayerController>();
+            if (playerController != null && debugMode)
+                Debug.Log("HospitalEndingSequence: Auto-found PlayerController");
+        }
+
+        if (mouseLook == null)
+        {
+            mouseLook = FindFirstObjectByType<MouseLook>();
+            if (mouseLook != null && debugMode)
+                Debug.Log("HospitalEndingSequence: Auto-found MouseLook");
+        }
+
         // Ensure the fade image is set up correctly
         if (fadeToBlackImage != null)
         {
@@ -60,6 +91,12 @@ public class HospitalEndingSequence : MonoBehaviour
             // Start fully black
             canvasGroup.alpha = 1f;
 
+            // Disable player controls temporarily for the fade sequence
+            if (playerController != null)
+                playerController.enabled = false;
+            if (mouseLook != null)
+                mouseLook.enabled = false;
+
             // Find camera if not assigned
             if (playerCamera == null)
             {
@@ -70,7 +107,8 @@ public class HospitalEndingSequence : MonoBehaviour
             if (playerCamera != null)
             {
                 initialCameraRotation = playerCamera.transform.localRotation;
-                Debug.Log("HospitalEndingSequence: Camera found and initialized");
+                if (debugMode)
+                    Debug.Log("HospitalEndingSequence: Camera found and initialized");
             }
             else
             {
@@ -97,7 +135,7 @@ public class HospitalEndingSequence : MonoBehaviour
 
     private IEnumerator FadeSequence()
     {
-        // 0. Wait on black screen for 5 seconds
+        // 0. Wait on black screen for initial duration
         yield return new WaitForSeconds(initialBlackScreenDuration);
 
         // 1. Fade in from black
@@ -110,32 +148,46 @@ public class HospitalEndingSequence : MonoBehaviour
         }
         canvasGroup.alpha = 0f;
 
-        // 2. Enable looking around
+        // 2. Enable looking around (but keep player movement disabled)
         isLookingAround = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        Debug.Log("Camera look enabled - player can look around for " + lookAroundDuration + " seconds");
+        if (debugMode)
+            Debug.Log("Camera look enabled - player can look around for " + lookAroundDuration + " seconds");
 
-        // 3. Wait while player can look around (10 seconds)
+        // 3. Wait while player can look around
         yield return new WaitForSeconds(lookAroundDuration);
 
-        // 4. Stop looking around
+        // 4. Start fade to black
         isLookingAround = false;
+        creditsTriggered = true;
+
+        // Unlock cursor before transitioning
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // 5. Hard cut to black (instant)
-        canvasGroup.alpha = 1f;
+        if (debugMode)
+            Debug.Log("Hospital ending sequence complete - starting fade to black");
 
-        Debug.Log("Hospital ending sequence complete - black screen");
+        // 5. Fade to black
+        elapsed = 0f;
+        while (elapsed < fadeOutDuration)
+        {
+            elapsed += Time.deltaTime;
+            canvasGroup.alpha = Mathf.Clamp01(elapsed / fadeOutDuration);
+            yield return null;
+        }
+        canvasGroup.alpha = 1f;
 
         // 6. Wait on black screen, then load Credits
         yield return new WaitForSeconds(blackScreenDuration);
 
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            Debug.Log("Loading Credits scene");
+            if (debugMode)
+                Debug.Log("Loading Credits scene");
+
             UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
         }
     }
@@ -152,7 +204,7 @@ public class HospitalEndingSequence : MonoBehaviour
         cameraRotationY += mouseX;
         cameraRotationX -= mouseY;
 
-        // Clamp both horizontal and vertical rotation to 30 degrees
+        // Clamp both horizontal and vertical rotation to limits
         cameraRotationX = Mathf.Clamp(cameraRotationX, cameraRotationLimitsX.x, cameraRotationLimitsX.y);
         cameraRotationY = Mathf.Clamp(cameraRotationY, cameraRotationLimitsY.x, cameraRotationLimitsY.y);
 
