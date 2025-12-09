@@ -18,6 +18,24 @@ public class PlayerInteractor : MonoBehaviour
     [Tooltip("Layer mask for Timothy - set to 'Everything' or create a 'Timothy' layer")]
     public LayerMask timothyMask = -1; // -1 means everything by default
 
+    [Tooltip("Light to use as muzzle flash")]
+    public Light muzzleFlashLight;
+
+    [Tooltip("Maximum range for muzzle flash light")]
+    public float muzzleFlashMaxRange = 50f;
+
+    [Tooltip("How fast the muzzle flash appears (seconds)")]
+    public float muzzleFlashRiseTime = 0.05f;
+
+    [Tooltip("How long the muzzle flash stays at max brightness (seconds)")]
+    public float muzzleFlashHoldTime = 0.05f;
+
+    [Tooltip("How fast the muzzle flash fades out (seconds)")]
+    public float muzzleFlashFadeTime = 0.1f;
+
+    [Tooltip("Maximum angle from center to shoot Timothy (degrees)")]
+    public float shootAngleThreshold = 15f;
+
     [Header("UI Feedback")]
     public Color lockedColor = Color.gray;
     public Color unlockedColor = Color.white;
@@ -41,6 +59,13 @@ public class PlayerInteractor : MonoBehaviour
     {
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.spatialBlend = 0f;
+
+        // Make sure muzzle flash light starts off
+        if (muzzleFlashLight != null)
+        {
+            muzzleFlashLight.enabled = false;
+            muzzleFlashLight.range = 0f;
+        }
     }
 
     void Update()
@@ -268,17 +293,6 @@ public class PlayerInteractor : MonoBehaviour
 
     private void HandleGunShoot()
     {
-        // ALWAYS play gun sound first, regardless of what we hit
-        if (Interactable.StoredGunShootSound != null)
-        {
-            Debug.Log("Playing gun sound at volume 1.0");
-            AudioSource.PlayClipAtPoint(Interactable.StoredGunShootSound, transform.position, 1f);
-        }
-        else
-        {
-            Debug.LogWarning("StoredGunShootSound is NULL - gun sound was not stored properly on pickup");
-        }
-
         // Debug: Check if gun is equipped
         if (!Interactable.HasGun)
         {
@@ -299,7 +313,7 @@ public class PlayerInteractor : MonoBehaviour
         if (hits.Length == 0)
         {
             Debug.Log("Raycast didn't hit anything in timothyMask");
-            return;
+            return; // Don't shoot or play sound if nothing hit
         }
 
         Debug.Log($"Raycast hit {hits.Length} object(s)");
@@ -317,25 +331,26 @@ public class PlayerInteractor : MonoBehaviour
 
                 if (timothy.IsActive)
                 {
-                    Debug.Log("Timothy is active, triggering shot ending!");
+                    // Check if player is looking at Timothy (within angle threshold)
+                    Vector3 directionToTimothy = (timothy.transform.position - transform.position).normalized;
+                    float angleToTimothy = Vector3.Angle(transform.forward, directionToTimothy);
 
-                    // Trigger shot ending
-                    Interactable.shotEndingTriggered = true;
-                    Debug.Log("Timothy shot! Loading PaddedRoom scene.");
+                    Debug.Log($"Angle to Timothy: {angleToTimothy:F1}° (threshold: {shootAngleThreshold}°)");
 
-                    // Disable player controls
-                    PlayerController pc = playerBody.GetComponent<PlayerController>();
-                    MouseLook mouseLook = GetComponent<MouseLook>();
+                    if (angleToTimothy <= shootAngleThreshold)
+                    {
+                        Debug.Log("Timothy is active and in crosshairs, triggering shot ending!");
 
-                    if (pc != null) pc.enabled = false;
-                    if (mouseLook != null) mouseLook.enabled = false;
-
-                    // Destroy Timothy
-                    Destroy(timothy.gameObject);
-
-                    // Load the PaddedRoom scene
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
-                    return; // Exit after shooting Timothy
+                        // Start muzzle flash and shooting sequence
+                        StartCoroutine(MuzzleFlashEffect());
+                        StartCoroutine(ShootTimothySequence(timothy));
+                        return; // Exit after starting the sequence
+                    }
+                    else
+                    {
+                        Debug.Log($"Timothy not in crosshairs - angle {angleToTimothy:F1}° exceeds threshold {shootAngleThreshold}°");
+                        return; // Don't shoot if not looking at Timothy
+                    }
                 }
                 else
                 {
@@ -347,6 +362,77 @@ public class PlayerInteractor : MonoBehaviour
                 Debug.Log("Hit object has no TimothyAI component");
             }
         }
+    }
+
+    private IEnumerator MuzzleFlashEffect()
+    {
+        if (muzzleFlashLight == null) yield break;
+
+        // Turn light on
+        muzzleFlashLight.enabled = true;
+        muzzleFlashLight.range = 0f;
+
+        // Rise quickly
+        float elapsed = 0f;
+        while (elapsed < muzzleFlashRiseTime)
+        {
+            elapsed += Time.deltaTime;
+            muzzleFlashLight.range = Mathf.Lerp(0f, muzzleFlashMaxRange, elapsed / muzzleFlashRiseTime);
+            yield return null;
+        }
+        muzzleFlashLight.range = muzzleFlashMaxRange;
+
+        // Hold at max
+        yield return new WaitForSeconds(muzzleFlashHoldTime);
+
+        // Fade out
+        elapsed = 0f;
+        while (elapsed < muzzleFlashFadeTime)
+        {
+            elapsed += Time.deltaTime;
+            muzzleFlashLight.range = Mathf.Lerp(muzzleFlashMaxRange, 0f, elapsed / muzzleFlashFadeTime);
+            yield return null;
+        }
+
+        // Turn off
+        muzzleFlashLight.range = 0f;
+        muzzleFlashLight.enabled = false;
+    }
+
+    private IEnumerator ShootTimothySequence(TimothyAI timothy)
+    {
+        // Play gun sound
+        if (Interactable.StoredGunShootSound != null)
+        {
+            Debug.Log("Playing gun sound (hit Timothy!)");
+            AudioSource.PlayClipAtPoint(Interactable.StoredGunShootSound, transform.position, 1f);
+        }
+        else
+        {
+            Debug.LogWarning("StoredGunShootSound is NULL - gun sound was not stored properly on pickup");
+        }
+
+        // Trigger shot ending flag
+        Interactable.shotEndingTriggered = true;
+
+        // Disable player controls immediately
+        PlayerController pc = playerBody.GetComponent<PlayerController>();
+        MouseLook mouseLook = GetComponent<MouseLook>();
+
+        if (pc != null) pc.enabled = false;
+        if (mouseLook != null) mouseLook.enabled = false;
+
+        // Wait for gun sound to play (adjust time based on your sound clip length)
+        float gunSoundLength = Interactable.StoredGunShootSound != null ? Interactable.StoredGunShootSound.length : 1f;
+        yield return new WaitForSeconds(gunSoundLength + 0.5f); // Add 0.5s buffer
+
+        // Destroy Timothy
+        Destroy(timothy.gameObject);
+
+        Debug.Log("Timothy shot! Loading PaddedRoom scene.");
+
+        // Load the PaddedRoom scene
+        UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
     }
 
     private IEnumerator FinalDoorSequence(Interactable doorInteractable)

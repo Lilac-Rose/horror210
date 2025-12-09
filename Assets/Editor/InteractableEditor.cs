@@ -190,7 +190,7 @@ public class InteractableEditor : Editor
 
     void ShowGunSettings()
     {
-        EditorGUILayout.LabelField("Gun Settings", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Gun Pickup Settings", EditorStyles.boldLabel);
 
         SerializedProperty prop;
 
@@ -198,12 +198,19 @@ public class InteractableEditor : Editor
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
         prop = serializedObject.FindProperty("gunShootSound");
-        if (prop != null) EditorGUILayout.PropertyField(prop);
+        if (prop != null)
+        {
+            EditorGUILayout.PropertyField(prop);
+            EditorGUILayout.HelpBox("This sound will play when the gun is fired at Timothy.", MessageType.Info);
+        }
 
         prop = serializedObject.FindProperty("gunUIImage");
         if (prop != null) EditorGUILayout.PropertyField(prop);
 
         prop = serializedObject.FindProperty("shotEndingBlackImage");
         if (prop != null) EditorGUILayout.PropertyField(prop);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Gun shooting settings (muzzle flash, shoot angle, etc.) are configured on the PlayerInteractor component.", MessageType.Info);
     }
 }

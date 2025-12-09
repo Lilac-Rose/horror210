@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -23,7 +23,7 @@ public class PaddedRoomSequence : MonoBehaviour
     [Tooltip("Object to spawn after player looks away")]
     public GameObject objectToSpawn;
 
-    [Tooltip("Time delay before spawning object while player looks away (seconds)")]
+    [Tooltip("Time after player gets control before checking if looking away (seconds)")]
     public float spawnDelay = 10f;
 
     [Tooltip("Angle from center of screen to trigger credits (degrees)")]
@@ -40,10 +40,17 @@ public class PaddedRoomSequence : MonoBehaviour
     [Tooltip("Time to wait on black screen before loading credits")]
     public float blackScreenDuration = 2f;
 
+    [Header("Debug Settings")]
+    [Tooltip("Enable detailed debug logging")]
+    public bool debugMode = true;
+
     private CanvasGroup canvasGroup;
+
     private bool objectSpawned = false;
-    private float lookAwayTimer = 0f;
+    private float timeSinceControlEnabled = 0f;
     private bool creditsTriggered = false;
+    private float debugLogTimer = 0f;
+    private float debugLogInterval = 1f; // Log every second
 
     void Start()
     {
@@ -62,7 +69,7 @@ public class PaddedRoomSequence : MonoBehaviour
                 Debug.Log("PaddedRoomSequence: Auto-found MouseLook");
         }
 
-        // Re-enable components in case they were disabled in previous scene
+        // IMPORTANT: Re-enable components in case they were disabled in previous scene
         if (playerController != null)
         {
             playerController.enabled = true;
@@ -127,22 +134,39 @@ public class PaddedRoomSequence : MonoBehaviour
         // After player has control, check for object spawning and looking
         if (playerController != null && playerController.enabled)
         {
-            // Handle object spawning while player looks away
+            // Increment time since control was enabled
+            if (!objectSpawned)
+            {
+                timeSinceControlEnabled += Time.deltaTime;
+            }
+
+            // Debug logging at intervals
+            if (debugMode)
+            {
+                debugLogTimer += Time.deltaTime;
+                if (debugLogTimer >= debugLogInterval && !objectSpawned)
+                {
+                    debugLogTimer = 0f;
+                    bool lookingAway = IsPlayerLookingAwayFromSpawnPoint();
+                    Debug.Log($"[PaddedRoom] Time elapsed: {timeSinceControlEnabled:F2}s / {spawnDelay}s, Looking away: {lookingAway}");
+                }
+            }
+
+            // Handle object spawning after delay if player is looking away
             if (!objectSpawned && objectToSpawn != null)
             {
-                if (IsPlayerLookingAwayFromSpawnPoint())
+                // Check if enough time has passed
+                if (timeSinceControlEnabled >= spawnDelay)
                 {
-                    lookAwayTimer += Time.deltaTime;
-
-                    if (lookAwayTimer >= spawnDelay)
+                    // Check if player is looking away at this moment
+                    if (IsPlayerLookingAwayFromSpawnPoint())
                     {
                         SpawnObject();
                     }
-                }
-                else
-                {
-                    // Reset timer if player looks back
-                    lookAwayTimer = 0f;
+                    else if (debugMode)
+                    {
+                        Debug.Log($"[PaddedRoom] {spawnDelay}s elapsed but player is looking at spawn point - waiting...");
+                    }
                 }
             }
 
@@ -159,13 +183,25 @@ public class PaddedRoomSequence : MonoBehaviour
 
     private bool IsPlayerLookingAwayFromSpawnPoint()
     {
-        if (mainCamera == null || objectToSpawn == null) return false;
+        if (mainCamera == null || objectToSpawn == null)
+        {
+            if (debugMode)
+                Debug.LogWarning("[PaddedRoom] Camera or object to spawn is null!");
+            return false;
+        }
 
         Vector3 directionToSpawnPoint = (objectToSpawn.transform.position - mainCamera.transform.position).normalized;
         float angle = Vector3.Angle(mainCamera.transform.forward, directionToSpawnPoint);
 
         // Player is looking away if angle is greater than a threshold (e.g., 60 degrees)
-        return angle > 60f;
+        bool isLookingAway = angle > 60f;
+
+        if (debugMode && debugLogTimer == 0f) // Only log on debug interval
+        {
+            Debug.Log($"[PaddedRoom] Angle to spawn point: {angle:F1}° (looking away if > 60°) - Result: {isLookingAway}");
+        }
+
+        return isLookingAway;
     }
 
     private bool IsPlayerLookingAtObject()
@@ -176,20 +212,36 @@ public class PaddedRoomSequence : MonoBehaviour
         float angle = Vector3.Angle(mainCamera.transform.forward, directionToObject);
 
         // Player is looking at object if it's near the center of their view
-        return angle <= centerDetectionAngle;
+        bool isLookingAt = angle <= centerDetectionAngle;
+
+        if (debugMode && isLookingAt)
+        {
+            Debug.Log($"[PaddedRoom] Player looking at object! Angle: {angle:F1}° (trigger at <= {centerDetectionAngle}°)");
+        }
+
+        return isLookingAt;
     }
 
     private void SpawnObject()
     {
         objectSpawned = true;
         objectToSpawn.SetActive(true);
-        Debug.Log("Object spawned after player looked away for " + spawnDelay + " seconds");
+
+        if (debugMode)
+        {
+            Debug.Log($"[PaddedRoom] ✓ OBJECT SPAWNED at {timeSinceControlEnabled:F2}s (player was looking away)!");
+        }
     }
 
     private void TriggerCredits()
     {
         creditsTriggered = true;
-        Debug.Log("Player looked at object - triggering credits");
+
+        if (debugMode)
+        {
+            Debug.Log("[PaddedRoom] ✓ CREDITS TRIGGERED - Player looked at spawned object!");
+        }
+
         StartCoroutine(FadeToCredits());
     }
 
@@ -218,7 +270,19 @@ public class PaddedRoomSequence : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        Debug.Log("Player controls enabled in padded room - waiting for player to look away");
+        if (debugMode)
+        {
+            Debug.Log("[PaddedRoom] ✓ Player controls enabled - starting spawn timer");
+            if (objectToSpawn != null)
+            {
+                Debug.Log($"[PaddedRoom] Object to spawn: {objectToSpawn.name} at position {objectToSpawn.transform.position}");
+                Debug.Log($"[PaddedRoom] Will check after {spawnDelay}s if player is looking away (angle > 60°)");
+            }
+            else
+            {
+                Debug.LogError("[PaddedRoom] ERROR: No object to spawn assigned!");
+            }
+        }
     }
 
     private IEnumerator FadeToCredits()
