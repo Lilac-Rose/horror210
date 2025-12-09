@@ -209,7 +209,7 @@ public class PlayerInteractor : MonoBehaviour
 
         if (audioClip != null)
         {
-            AudioSource.PlayClipAtPoint(audioClip, position, 1.5f);
+            AudioSource.PlayClipAtPoint(audioClip, position, 5f);
         }
     }
 
@@ -781,7 +781,7 @@ public class PlayerInteractor : MonoBehaviour
 
         // Play photo display sound before fadeout
         if (photoInteractable.photoDisplaySound != null)
-            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 2f);
+            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 10f);
 
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;
