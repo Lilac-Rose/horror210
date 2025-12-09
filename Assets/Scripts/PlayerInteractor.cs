@@ -171,8 +171,9 @@ public class PlayerInteractor : MonoBehaviour
     private void HandleDoorInteraction()
     {
         // Check if this is a jammed door and trigger delayed audio
-        if (currentTarget.isJammedDoor && currentTarget.delayedJammedAudio != null)
+        if (currentTarget.isJammedDoor && currentTarget.delayedJammedAudio != null && !currentTarget.jammedAudioPlayed)
         {
+            currentTarget.jammedAudioPlayed = true; // Mark as played
             StartCoroutine(PlayDelayedJammedAudio(currentTarget.delayedJammedAudio, currentTarget.transform.position));
         }
 
@@ -487,6 +488,19 @@ public class PlayerInteractor : MonoBehaviour
             playerBody.rotation = doorInteractable.playerTeleportPosition.rotation;
         }
 
+        // 1a. Make objects appear immediately after teleport
+        if (doorInteractable.objectsToAppear != null && doorInteractable.objectsToAppear.Length > 0)
+        {
+            foreach (GameObject obj in doorInteractable.objectsToAppear)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(true);
+                    Debug.Log($"Activated object: {obj.name}");
+                }
+            }
+        }
+
         // Very brief pause at teleported position
         yield return new WaitForSeconds(0.1f);
 
@@ -530,6 +544,19 @@ public class PlayerInteractor : MonoBehaviour
 
                 // Activate Timothy immediately
                 timothyAI.Activate();
+            }
+        }
+
+        // 4a. Make objects disappear when Timothy appears
+        if (doorInteractable.objectsToDisappear != null && doorInteractable.objectsToDisappear.Length > 0)
+        {
+            foreach (GameObject obj in doorInteractable.objectsToDisappear)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(false);
+                    Debug.Log($"Deactivated object: {obj.name}");
+                }
             }
         }
 

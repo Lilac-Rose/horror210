@@ -18,6 +18,14 @@ public class HospitalEndingSequence : MonoBehaviour
     [Tooltip("Reference to the mouse look component")]
     public MouseLook mouseLook;
 
+    [Header("Ambient Sound")]
+    [Tooltip("Sound to play continuously throughout the scene")]
+    public AudioClip ambientSound;
+
+    [Tooltip("Volume for the ambient sound")]
+    [Range(0f, 1f)]
+    public float ambientVolume = 0.5f;
+
     [Header("Camera Controls")]
     [Tooltip("Camera sensitivity during the sequence")]
     public float cameraSensitivity = 2f;
@@ -53,6 +61,7 @@ public class HospitalEndingSequence : MonoBehaviour
 
     private CanvasGroup canvasGroup;
     private bool isLookingAround = false;
+    private AudioSource audioSource;
 
     // Camera look variables
     private float cameraRotationX = 0f;
@@ -75,6 +84,13 @@ public class HospitalEndingSequence : MonoBehaviour
             if (mouseLook != null && debugMode)
                 Debug.Log("HospitalEndingSequence: Auto-found MouseLook");
         }
+
+        // Create audio source for ambient sound
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.clip = ambientSound;
+        audioSource.loop = true;
+        audioSource.spatialBlend = 0f; // 2D sound
+        audioSource.volume = ambientVolume;
 
         // Ensure the fade image is set up correctly
         if (fadeToBlackImage != null)
@@ -134,7 +150,15 @@ public class HospitalEndingSequence : MonoBehaviour
 
     private IEnumerator FadeSequence()
     {
-        // 0. Wait on black screen for initial duration
+        // 0. Start playing ambient sound immediately
+        if (ambientSound != null)
+        {
+            audioSource.Play();
+            if (debugMode)
+                Debug.Log("HospitalEndingSequence: Started playing ambient sound");
+        }
+
+        // Wait on black screen for initial duration
         yield return new WaitForSeconds(initialBlackScreenDuration);
 
         // 1. Fade in from black
@@ -168,15 +192,31 @@ public class HospitalEndingSequence : MonoBehaviour
         if (debugMode)
             Debug.Log("Hospital ending sequence complete - starting fade to black");
 
-        // 5. Fade to black
+        // 5. Fade to black and fade out sound
         elapsed = 0f;
         while (elapsed < fadeOutDuration)
         {
             elapsed += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Clamp01(elapsed / fadeOutDuration);
+            float progress = elapsed / fadeOutDuration;
+
+            // Fade visual to black
+            canvasGroup.alpha = Mathf.Clamp01(progress);
+
+            // Fade out sound
+            if (ambientSound != null)
+            {
+                audioSource.volume = ambientVolume * (1f - progress);
+            }
+
             yield return null;
         }
         canvasGroup.alpha = 1f;
+
+        // Stop sound completely
+        if (ambientSound != null)
+        {
+            audioSource.Stop();
+        }
 
         // 6. Wait on black screen, then load Credits
         yield return new WaitForSeconds(blackScreenDuration);
@@ -209,5 +249,14 @@ public class HospitalEndingSequence : MonoBehaviour
         // Apply rotation to camera
         Quaternion rotation = Quaternion.Euler(cameraRotationX, cameraRotationY, 0f);
         playerCamera.transform.localRotation = initialCameraRotation * rotation;
+    }
+
+    void OnDestroy()
+    {
+        // Clean up audio source when scene ends
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+        }
     }
 }
