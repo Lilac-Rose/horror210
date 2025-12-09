@@ -62,7 +62,7 @@ public class PaddedRoomSequence : MonoBehaviour
                 Debug.Log("PaddedRoomSequence: Auto-found MouseLook");
         }
 
-        // IMPORTANT: Re-enable components in case they were disabled in previous scene
+        // Re-enable components in case they were disabled in previous scene
         if (playerController != null)
         {
             playerController.enabled = true;
