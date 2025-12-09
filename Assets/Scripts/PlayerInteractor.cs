@@ -460,123 +460,91 @@ public class PlayerInteractor : MonoBehaviour
         interactImage.enabled = false;
         lockImage.enabled = false;
 
+        // Immediately lock all controls
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         MouseLook mouseLook = GetComponent<MouseLook>();
 
-        // Stop player movement and footsteps
-        pc?.StopFootsteps();
-        bool wasMovementEnabled = pc != null && pc.enabled;
-        bool wasMouseLookEnabled = mouseLook != null && mouseLook.enabled;
-
-        if (pc != null) pc.movementLocked = true;
-        if (mouseLook != null) mouseLook.lookLocked = true;
-
-        // 0. Teleport player to door interaction position (X and Z only, preserve Y)
-        if (doorInteractable.playerTeleportPosition != null)
-        {
-            Vector3 newPos = playerBody.position;
-            newPos.x = doorInteractable.playerTeleportPosition.position.x;
-            newPos.z = doorInteractable.playerTeleportPosition.position.z;
-            playerBody.position = newPos;
-        }
-
-        // 1. Make objects appear
-        if (doorInteractable.objectsToAppear != null)
-        {
-            foreach (GameObject obj in doorInteractable.objectsToAppear)
-            {
-                if (obj != null)
-                    obj.SetActive(true);
-            }
-        }
-
-        // 2. Increase player speed
         if (pc != null)
         {
-            pc.walkSpeed *= doorInteractable.speedMultiplier;
+            pc.movementLocked = true;
+            pc.StopFootsteps();
         }
 
-        // 3. Change the player's light range
-        Light playerLight = doorInteractable.playerLight;
-        float originalRange = 0f;
-        if (playerLight != null)
+        if (mouseLook != null)
         {
-            originalRange = playerLight.range;
-            yield return StartCoroutine(ChangeLightRange(playerLight, doorInteractable.targetLightRange, doorInteractable.lightChangeDuration));
+            mouseLook.lookLocked = true;
+            // Look up by 45 degrees
+            Transform cameraTransform = transform;
+            Vector3 currentRotation = cameraTransform.localEulerAngles;
+            currentRotation.x = -45f; // Look up (negative X for looking up in Unity)
+            cameraTransform.localEulerAngles = currentRotation;
         }
 
-        // 4. Back the player away from the door
-        yield return StartCoroutine(BackPlayerAway(playerBody, doorInteractable.playerBackAwayDistance, doorInteractable.playerBackAwaySpeed));
+        // 1. Teleport player in front of the door
+        if (doorInteractable.playerTeleportPosition != null)
+        {
+            playerBody.position = doorInteractable.playerTeleportPosition.position;
+            playerBody.rotation = doorInteractable.playerTeleportPosition.rotation;
+        }
 
-        // 5. Play final door audio when door starts opening
+        // Very brief pause at teleported position
+        yield return new WaitForSeconds(0.1f);
+
+        // 2. Step back slightly (very quick - 0.3 seconds)
+        Vector3 startPosition = playerBody.position;
+        Vector3 stepBackPosition = startPosition - playerBody.forward * 0.5f; // Small step back
+
+        float stepBackDuration = 0.3f;
+        float elapsed = 0f;
+
+        while (elapsed < stepBackDuration)
+        {
+            elapsed += Time.deltaTime;
+            playerBody.position = Vector3.Lerp(startPosition, stepBackPosition, elapsed / stepBackDuration);
+            yield return null;
+        }
+
+        // 3. Door opens immediately (very fast)
+        float fastDoorSpeedMultiplier = 3f; // Much faster door opening
+        StartCoroutine(FastRotateDoorHorizontal(doorInteractable, fastDoorSpeedMultiplier));
+
+        // Play door sound if available
         if (doorInteractable.finalDoorAudio != null)
         {
             audioSource.clip = doorInteractable.finalDoorAudio;
             audioSource.Play();
         }
 
-        // 6. Rotate door on left edge (horizontal swing)
-        StartCoroutine(RotateDoorHorizontal(doorInteractable));
-
-        // 7. Activate Timothy and move him forward slowly (coming out of door)
+        // 4. Timothy appears immediately (no emergence delay)
         if (doorInteractable.timothyObject != null)
         {
             doorInteractable.timothyObject.SetActive(true);
 
-            // Set up Timothy's AI but don't activate it yet
+            // Position Timothy right in the doorway
             TimothyAI timothyAI = doorInteractable.timothyObject.GetComponent<TimothyAI>();
             if (timothyAI != null)
             {
                 timothyAI.player = playerBody;
                 timothyAI.chaseSpeed = doorInteractable.timothyMoveSpeed;
                 timothyAI.killSound = doorInteractable.timothyKillSound;
-            }
 
-            // Move Timothy forward slowly (emerging from door) - wait for this to complete
-            yield return StartCoroutine(MoveTimothyForward(doorInteractable.timothyObject, doorInteractable.timothyMoveSpeed * 0.3f, 2f));
-        }
-
-        // 8. Turn player camera 180 degrees (after Timothy emerges)
-        // yield return StartCoroutine(RotatePlayer180(playerBody));
-
-        // 9. Activate Timothy's AI after player turns around
-        if (doorInteractable.timothyObject != null)
-        {
-            TimothyAI timothyAI = doorInteractable.timothyObject.GetComponent<TimothyAI>();
-            if (timothyAI != null)
-            {
-                // Make sure player reference is set before activation
-                if (timothyAI.player == null)
-                    timothyAI.player = playerBody;
-
+                // Activate Timothy immediately
                 timothyAI.Activate();
-                Debug.Log("Timothy activated from FinalDoorSequence!");
-            }
-            else
-            {
-                Debug.LogError("No TimothyAI component found on timothyObject!");
             }
         }
 
-        // 10. Make objects disappear when chase starts
-        if (doorInteractable.objectsToDisappear != null)
-        {
-            foreach (GameObject obj in doorInteractable.objectsToDisappear)
-            {
-                if (obj != null)
-                    obj.SetActive(false);
-            }
-        }
+        // Brief pause to see Timothy (0.2 seconds)
+        yield return new WaitForSeconds(0.2f);
 
-        // Re-enable controls
+        // 5. Re-enable controls and start chase
         if (pc != null) pc.movementLocked = false;
         if (mouseLook != null) mouseLook.lookLocked = false;
 
-        // Start chase music when player regains control
+        // Start chase music
         if (doorInteractable.chaseMusic != null)
         {
             audioSource.clip = doorInteractable.chaseMusic;
-            audioSource.loop = true; // Chase music should loop
+            audioSource.loop = true;
             audioSource.Play();
         }
 
@@ -585,6 +553,55 @@ public class PlayerInteractor : MonoBehaviour
 
         currentTarget = null;
         isInteracting = false;
+    }
+
+    private IEnumerator FastRotateDoorHorizontal(Interactable doorInteractable, float speedMultiplier = 1f)
+    {
+        Transform doorTransform = doorInteractable.transform;
+        float targetRotation = doorInteractable.doorRotationDegrees;
+        float rotationSpeed = doorInteractable.doorRotationSpeed * speedMultiplier; // Apply speed multiplier
+
+        // Determine pivot point (left edge of door for hinge)
+        Vector3 pivotPoint;
+        if (doorInteractable.doorPivotPoint != null)
+        {
+            pivotPoint = doorInteractable.doorPivotPoint.position;
+        }
+        else
+        {
+            // Calculate left edge based on door's bounds (hinge side)
+            Renderer doorRenderer = doorTransform.GetComponent<Renderer>();
+            if (doorRenderer != null)
+            {
+                Bounds bounds = doorRenderer.bounds;
+                // Use the minimum X (left edge) as the pivot for the hinge
+                pivotPoint = new Vector3(bounds.min.x, doorTransform.position.y, doorTransform.position.z);
+            }
+            else
+            {
+                // Fallback: offset to the left edge
+                pivotPoint = doorTransform.position + doorTransform.right * -0.5f;
+            }
+        }
+
+        float rotated = 0f;
+
+        while (rotated < targetRotation)
+        {
+            float deltaRotation = rotationSpeed * Time.deltaTime;
+
+            if (rotated + deltaRotation > targetRotation)
+            {
+                deltaRotation = targetRotation - rotated;
+            }
+
+            // Rotate around the pivot point on Y axis (horizontal swing like a door)
+            doorTransform.RotateAround(pivotPoint, Vector3.up, deltaRotation);
+
+            rotated += deltaRotation;
+
+            yield return null;
+        }
     }
 
     private void StartScreenShake()
@@ -809,7 +826,7 @@ public class PlayerInteractor : MonoBehaviour
 
         // Play photo display sound before fadeout
         if (photoInteractable.photoDisplaySound != null)
-            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 10f);
+            AudioSource.PlayClipAtPoint(photoInteractable.photoDisplaySound, transform.position, 50f);
 
         Vector3 newPos = playerBody.position;
         float relativeZ = 184.5f - 110.5f;

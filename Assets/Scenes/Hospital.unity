@@ -698,14 +698,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   fadeToBlackImage: {fileID: 679093623}
   playerCamera: {fileID: 347409225}
+  playerController: {fileID: 0}
+  mouseLook: {fileID: 0}
   cameraSensitivity: 2
   cameraRotationLimitsX: {x: -30, y: 30}
   cameraRotationLimitsY: {x: -30, y: 30}
   initialBlackScreenDuration: 5
   fadeInDuration: 5
   lookAroundDuration: 10
+  fadeOutDuration: 2
+  blackScreenDuration: 0
   nextSceneName: 
-  blackScreenDuration: 3
+  debugMode: 1
 --- !u!114 &347409229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1224,7 +1228,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &662263143
 MonoBehaviour:
   m_ObjectHideFlags: 0
