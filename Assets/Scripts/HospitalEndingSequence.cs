@@ -53,7 +53,6 @@ public class HospitalEndingSequence : MonoBehaviour
 
     private CanvasGroup canvasGroup;
     private bool isLookingAround = false;
-    private bool creditsTriggered = false;
 
     // Camera look variables
     private float cameraRotationX = 0f;
@@ -161,7 +160,6 @@ public class HospitalEndingSequence : MonoBehaviour
 
         // 4. Start fade to black
         isLookingAround = false;
-        creditsTriggered = true;
 
         // Unlock cursor before transitioning
         Cursor.lockState = CursorLockMode.None;
