@@ -7,18 +7,19 @@ public class PaddedRoomSequence : MonoBehaviour
     [Header("References")]
     [Tooltip("The main camera in the scene")]
     public Camera mainCamera;
-
     [Tooltip("UI Image that covers the screen (should be black)")]
     public Image fadeToBlackImage;
 
     [Header("Player References")]
     [Tooltip("Reference to the player controller")]
     public PlayerController playerController;
-
     [Tooltip("Reference to the mouse look component")]
     public MouseLook mouseLook;
 
     [Header("Timing Settings")]
+    [Tooltip("Duration of initial black screen before fade in (seconds)")]
+    public float initialBlackScreenDuration = 5f;
+
     [Tooltip("Duration of fade in from black (seconds)")]
     public float fadeInDuration = 2f;
 
@@ -65,6 +66,8 @@ public class PaddedRoomSequence : MonoBehaviour
 
     private IEnumerator FadeSequence()
     {
+        // 0. Wait on black screen for 5 seconds
+        yield return new WaitForSeconds(initialBlackScreenDuration);
 
         // 1. Fade in from black
         float elapsed = 0f;

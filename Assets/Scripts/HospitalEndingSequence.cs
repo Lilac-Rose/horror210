@@ -17,6 +17,9 @@ public class HospitalEndingSequence : MonoBehaviour
     public Vector2 cameraRotationLimits = new Vector2(-30f, 30f);
 
     [Header("Timing Settings")]
+    [Tooltip("Duration of initial black screen before fade in (seconds)")]
+    public float initialBlackScreenDuration = 5f;
+
     [Tooltip("Duration of fade in from black (seconds)")]
     public float fadeInDuration = 2f;
 
@@ -80,6 +83,8 @@ public class HospitalEndingSequence : MonoBehaviour
 
     private IEnumerator FadeSequence()
     {
+        // 0. Wait on black screen for 5 seconds
+        yield return new WaitForSeconds(initialBlackScreenDuration);
 
         // 1. Fade in from black
         float elapsed = 0f;
