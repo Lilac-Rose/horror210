@@ -54,20 +54,84 @@ public class PaddedRoomSequence : MonoBehaviour
 
     void Awake()
     {
-        Debug.Log("[PaddedRoom] Awake called - Scene is loading");
+        Debug.Log("[PaddedRoom] ===== AWAKE CALLED =====");
+        Debug.Log($"[PaddedRoom] This script is on GameObject: {gameObject.name}");
+        Debug.Log($"[PaddedRoom] GameObject is active: {gameObject.activeInHierarchy}");
+        Debug.Log($"[PaddedRoom] Script is enabled: {enabled}");
+
+        // List all GameObjects in the scene
+        GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        Debug.Log($"[PaddedRoom] Total GameObjects in scene: {allObjects.Length}");
+
+        // Look for player objects specifically
+        PlayerController[] players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+        Debug.Log($"[PaddedRoom] PlayerController count: {players.Length}");
+        foreach (var player in players)
+        {
+            Debug.Log($"[PaddedRoom] - Found PlayerController on: {player.gameObject.name}");
+        }
+
+        // Look for cameras
+        Camera[] cameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+        Debug.Log($"[PaddedRoom] Camera count: {cameras.Length}");
+        foreach (var cam in cameras)
+        {
+            Debug.Log($"[PaddedRoom] - Found Camera on: {cam.gameObject.name}, Active: {cam.gameObject.activeInHierarchy}");
+        }
+    }
+
+    void OnEnable()
+    {
+        Debug.Log("[PaddedRoom] OnEnable called");
+    }
+
+    void OnDisable()
+    {
+        Debug.Log("[PaddedRoom] OnDisable called - script is being disabled!");
+    }
+
+    void OnDestroy()
+    {
+        Debug.Log("[PaddedRoom] OnDestroy called - GameObject is being destroyed!");
     }
 
     void Start()
     {
-        Debug.Log("[PaddedRoom] Start called - Initializing sequence");
+        Debug.Log("[PaddedRoom] ===== START CALLED - Initializing sequence =====");
+        Debug.Log($"[PaddedRoom] GameObject still active: {gameObject.activeInHierarchy}");
 
-        // CRITICAL: Find components in the NEW scene (not from old scene)
+        // Count how many objects are in the scene
+        GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        Debug.Log($"[PaddedRoom] Total GameObjects in scene: {allObjects.Length}");
+
+        // CRITICAL: Check for duplicate players
+        PlayerController[] allPlayers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+        Debug.Log($"[PaddedRoom] Found {allPlayers.Length} PlayerController(s) in scene:");
+        foreach (var pc in allPlayers)
+        {
+            Debug.Log($"  - PlayerController on '{pc.gameObject.name}' (Active: {pc.gameObject.activeInHierarchy})");
+        }
+
+        // Check for duplicate cameras
+        Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+        Debug.Log($"[PaddedRoom] Found {allCameras.Length} Camera(s) in scene:");
+        foreach (var cam in allCameras)
+        {
+            Debug.Log($"  - Camera on '{cam.gameObject.name}' (Tag: {cam.tag}, Active: {cam.gameObject.activeInHierarchy})");
+        }
+
+        // Auto-find player components if not assigned
         if (playerController == null)
         {
             // Use FindAnyObjectByType which works better after scene load
             playerController = FindAnyObjectByType<PlayerController>();
             if (playerController != null)
+            {
                 Debug.Log($"PaddedRoomSequence: Auto-found PlayerController on {playerController.gameObject.name}");
+
+                // Store reference to player GameObject so we can monitor it
+                StartCoroutine(MonitorPlayerExistence(playerController.gameObject));
+            }
             else
                 Debug.LogError("PaddedRoomSequence: FAILED to find PlayerController!");
         }
@@ -266,6 +330,23 @@ public class PaddedRoomSequence : MonoBehaviour
         }
 
         StartCoroutine(FadeToCredits());
+    }
+
+    private IEnumerator MonitorPlayerExistence(GameObject player)
+    {
+        Debug.Log("[PaddedRoom] Starting to monitor player existence...");
+
+        while (true)
+        {
+            if (player == null)
+            {
+                Debug.LogError("[PaddedRoom] ===== PLAYER WAS DESTROYED! =====");
+                Debug.LogError("[PaddedRoom] Check the call stack to see what destroyed it!");
+                yield break;
+            }
+
+            yield return new WaitForSeconds(0.5f);
+        }
     }
 
     private IEnumerator FadeSequence()
