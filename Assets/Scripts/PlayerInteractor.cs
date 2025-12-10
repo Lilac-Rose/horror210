@@ -220,7 +220,7 @@ public class PlayerInteractor : MonoBehaviour
 
         if (audioClip != null)
         {
-            audioSource.PlayOneShot(audioClip, 5f);
+            audioSource.PlayOneShot(audioClip, 2f);
         }
     }
 
@@ -412,21 +412,20 @@ public class PlayerInteractor : MonoBehaviour
 
     private IEnumerator ShootTimothySequence(TimothyAI timothy)
     {
-        // Disable player controls and lock position immediately
+        // Disable player controls immediately
         PlayerController pc = playerBody.GetComponent<PlayerController>();
         MouseLook mouseLook = GetComponent<MouseLook>();
-        CharacterController characterController = playerBody.GetComponent<CharacterController>();
-
-        // Store current position to prevent falling through floor
-        Vector3 lockedPosition = playerBody.position;
 
         if (pc != null)
         {
             pc.enabled = false;
             pc.StopFootsteps();
         }
-        if (mouseLook != null) mouseLook.enabled = false;
-        if (characterController != null) characterController.enabled = false;
+        if (mouseLook != null)
+            mouseLook.enabled = false;
+
+        // DON'T disable CharacterController - it prevents scene transitions
+        // Keep it enabled so Unity can handle the player properly during scene load
 
         // Play gun sound
         if (Interactable.StoredGunShootSound != null)
@@ -443,14 +442,14 @@ public class PlayerInteractor : MonoBehaviour
         Interactable.shotEndingTriggered = true;
 
         // Destroy Timothy immediately to stop him from approaching
-        Destroy(timothy.gameObject);
+        if (timothy != null)
+            Destroy(timothy.gameObject);
 
-        // Wait 0.1 seconds before cutting to black
-        yield return new WaitForSeconds(0.1f);
+        // Wait briefly to let the gun sound start playing
+        yield return new WaitForSeconds(0.2f);
 
-        // Now cut to black and load the PaddedRoom scene
-        Debug.Log("Timothy shot! Cutting to black and loading PaddedRoom scene.");
-
+        // Load PaddedRoom scene immediately - let that scene handle the black screen and fade
+        Debug.Log("Timothy shot! Loading PaddedRoom scene immediately.");
         UnityEngine.SceneManagement.SceneManager.LoadScene("PaddedRoom");
     }
 
@@ -859,7 +858,7 @@ public class PlayerInteractor : MonoBehaviour
 
         if (photoInteractable.photoDisplaySound != null)
         {
-            audioSource.PlayOneShot(photoInteractable.photoDisplaySound, 5f);
+            audioSource.PlayOneShot(photoInteractable.photoDisplaySound, 2f);
         }
 
         Vector3 newPos = playerBody.position;

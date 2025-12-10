@@ -45,55 +45,76 @@ public class PaddedRoomSequence : MonoBehaviour
     public bool debugMode = true;
 
     private CanvasGroup canvasGroup;
-
     private bool objectSpawned = false;
     private float timeSinceControlEnabled = 0f;
     private bool creditsTriggered = false;
     private float debugLogTimer = 0f;
-    private float debugLogInterval = 1f; // Log every second
+    private float debugLogInterval = 1f;
+    private bool sequenceStarted = false;
+
+    void Awake()
+    {
+        Debug.Log("[PaddedRoom] Awake called - Scene is loading");
+    }
 
     void Start()
     {
-        // Auto-find player components if not assigned
+        Debug.Log("[PaddedRoom] Start called - Initializing sequence");
+
+        // CRITICAL: Find components in the NEW scene (not from old scene)
         if (playerController == null)
         {
-            playerController = FindFirstObjectByType<PlayerController>();
+            // Use FindAnyObjectByType which works better after scene load
+            playerController = FindAnyObjectByType<PlayerController>();
             if (playerController != null)
-                Debug.Log("PaddedRoomSequence: Auto-found PlayerController");
+                Debug.Log($"PaddedRoomSequence: Auto-found PlayerController on {playerController.gameObject.name}");
+            else
+                Debug.LogError("PaddedRoomSequence: FAILED to find PlayerController!");
         }
 
         if (mouseLook == null)
         {
-            mouseLook = FindFirstObjectByType<MouseLook>();
+            mouseLook = FindAnyObjectByType<MouseLook>();
             if (mouseLook != null)
-                Debug.Log("PaddedRoomSequence: Auto-found MouseLook");
+                Debug.Log($"PaddedRoomSequence: Auto-found MouseLook on {mouseLook.gameObject.name}");
+            else
+                Debug.LogError("PaddedRoomSequence: FAILED to find MouseLook!");
         }
 
-        // IMPORTANT: Re-enable components in case they were disabled in previous scene
+        // Auto-find camera if not assigned
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+            if (mainCamera != null)
+                Debug.Log($"PaddedRoomSequence: Auto-found main camera: {mainCamera.gameObject.name}");
+            else
+                Debug.LogError("PaddedRoomSequence: FAILED to find camera!");
+        }
+
+        // CRITICAL: Force enable components in case they were disabled
         if (playerController != null)
         {
             playerController.enabled = true;
-            Debug.Log("PaddedRoomSequence: PlayerController enabled");
-        }
-        else
-        {
-            Debug.LogWarning("PaddedRoomSequence: PlayerController not found!");
+            Debug.Log("PaddedRoomSequence: PlayerController force-enabled");
         }
 
         if (mouseLook != null)
         {
             mouseLook.enabled = true;
-            Debug.Log("PaddedRoomSequence: MouseLook enabled");
+            Debug.Log("PaddedRoomSequence: MouseLook force-enabled");
         }
-        else
+
+        // Make sure camera is enabled and active
+        if (mainCamera != null)
         {
-            Debug.LogWarning("PaddedRoomSequence: MouseLook not found!");
+            mainCamera.enabled = true;
+            mainCamera.gameObject.SetActive(true);
+            Debug.Log("PaddedRoomSequence: Camera enabled and active");
         }
 
         // Ensure the fade image is set up correctly
         if (fadeToBlackImage != null)
         {
-            // Make sure it covers the whole screen
             fadeToBlackImage.enabled = true;
 
             // Ensure it has a CanvasGroup for smooth fading
@@ -103,8 +124,9 @@ public class PaddedRoomSequence : MonoBehaviour
 
             // Start fully black
             canvasGroup.alpha = 1f;
+            Debug.Log("PaddedRoomSequence: Fade image set to black");
 
-            // Now disable player controls temporarily for the fade sequence
+            // Temporarily disable player controls for fade sequence
             if (playerController != null)
                 playerController.enabled = false;
             if (mouseLook != null)
@@ -112,24 +134,29 @@ public class PaddedRoomSequence : MonoBehaviour
 
             // Make sure object starts disabled
             if (objectToSpawn != null)
+            {
                 objectToSpawn.SetActive(false);
-
-            // Auto-find camera if not assigned
-            if (mainCamera == null)
-                mainCamera = Camera.main;
+                Debug.Log($"PaddedRoomSequence: Object to spawn '{objectToSpawn.name}' disabled");
+            }
+            else
+            {
+                Debug.LogWarning("PaddedRoomSequence: No object to spawn assigned!");
+            }
 
             // Start the sequence
+            sequenceStarted = true;
             StartCoroutine(FadeSequence());
+            Debug.Log("PaddedRoomSequence: Fade sequence started!");
         }
         else
         {
-            Debug.LogError("PaddedRoomSequence: fadeToBlackImage not assigned!");
+            Debug.LogError("PaddedRoomSequence: fadeToBlackImage not assigned! Sequence cannot start!");
         }
     }
 
     void Update()
     {
-        if (creditsTriggered) return;
+        if (!sequenceStarted || creditsTriggered) return;
 
         // After player has control, check for object spawning and looking
         if (playerController != null && playerController.enabled)
@@ -155,10 +182,8 @@ public class PaddedRoomSequence : MonoBehaviour
             // Handle object spawning after delay if player is looking away
             if (!objectSpawned && objectToSpawn != null)
             {
-                // Check if enough time has passed
                 if (timeSinceControlEnabled >= spawnDelay)
                 {
-                    // Check if player is looking away at this moment
                     if (IsPlayerLookingAwayFromSpawnPoint())
                     {
                         SpawnObject();
@@ -193,10 +218,9 @@ public class PaddedRoomSequence : MonoBehaviour
         Vector3 directionToSpawnPoint = (objectToSpawn.transform.position - mainCamera.transform.position).normalized;
         float angle = Vector3.Angle(mainCamera.transform.forward, directionToSpawnPoint);
 
-        // Player is looking away if angle is greater than a threshold (e.g., 60 degrees)
         bool isLookingAway = angle > 60f;
 
-        if (debugMode && debugLogTimer == 0f) // Only log on debug interval
+        if (debugMode && debugLogTimer == 0f)
         {
             Debug.Log($"[PaddedRoom] Angle to spawn point: {angle:F1}° (looking away if > 60°) - Result: {isLookingAway}");
         }
@@ -211,7 +235,6 @@ public class PaddedRoomSequence : MonoBehaviour
         Vector3 directionToObject = (objectToSpawn.transform.position - mainCamera.transform.position).normalized;
         float angle = Vector3.Angle(mainCamera.transform.forward, directionToObject);
 
-        // Player is looking at object if it's near the center of their view
         bool isLookingAt = angle <= centerDetectionAngle;
 
         if (debugMode && isLookingAt)
@@ -247,8 +270,12 @@ public class PaddedRoomSequence : MonoBehaviour
 
     private IEnumerator FadeSequence()
     {
-        // 0. Wait on black screen for 5 seconds
+        Debug.Log($"[PaddedRoom] Starting fade sequence - waiting {initialBlackScreenDuration}s on black screen");
+
+        // 0. Wait on black screen
         yield return new WaitForSeconds(initialBlackScreenDuration);
+
+        Debug.Log($"[PaddedRoom] Fading in over {fadeInDuration}s");
 
         // 1. Fade in from black
         float elapsed = 0f;
@@ -259,6 +286,8 @@ public class PaddedRoomSequence : MonoBehaviour
             yield return null;
         }
         canvasGroup.alpha = 0f;
+
+        Debug.Log("[PaddedRoom] Fade in complete - enabling player controls");
 
         // 2. Enable player controls
         if (playerController != null)
@@ -287,6 +316,8 @@ public class PaddedRoomSequence : MonoBehaviour
 
     private IEnumerator FadeToCredits()
     {
+        Debug.Log("[PaddedRoom] Fading to credits...");
+
         // Disable player controls
         if (playerController != null)
             playerController.enabled = false;
@@ -299,7 +330,7 @@ public class PaddedRoomSequence : MonoBehaviour
 
         // Fade to black
         float elapsed = 0f;
-        float fadeDuration = 0f;
+        float fadeDuration = 2f;
 
         while (elapsed < fadeDuration)
         {
